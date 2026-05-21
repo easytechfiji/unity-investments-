@@ -1,0 +1,128 @@
+.category-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  background: var(--white, #ffffff);
+  border: 1px solid var(--border, #e0e0e0);
+  border-radius: 8px;
+  overflow: hidden;
+  cursor: pointer;
+  transition: box-shadow 0.3s ease;
+}
+
+.category-card:hover {
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+}
+
+.category-card__image {
+  position: relative;
+  aspect-ratio: 4 / 3;
+  background-color: #ede9e2;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  transition: opacity 0.3s ease;
+}
+
+.category-card__placeholder-icon {
+  width: 48px;
+  height: 48px;
+  color: var(--ink-muted, #8c8c8c);
+  opacity: 0.4;
+}
+
+.category-card__content {
+  padding: 1.5rem 1.5rem 1rem 1.5rem;
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.category-card__name {
+  margin: 0;
+  font-family: var(--font-display, 'Playfair Display', serif);
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--text-primary, #0a0a0a);
+  line-height: 1.3;
+}
+
+.category-card__description {
+  margin: 0;
+  font-size: 0.875rem;
+  color: var(--ink-muted, #8c8c8c);
+  line-height: 1.5;
+}
+
+.category-card__arrow {
+  position: absolute;
+  bottom: 1.5rem;
+  right: 1.5rem;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-primary, #0a0a0a);
+  transition: color 0.3s ease;
+}
+
+.category-card__arrow svg {
+  width: 100%;
+  height: 100%;
+  stroke-width: 2;
+}
+
+.category-card:hover .category-card__arrow {
+  color: var(--accent-primary, #8b5cf6);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .category-card__content {
+    padding: 1.25rem 1.25rem 0.75rem 1.25rem;
+  }
+
+  .category-card__name {
+    font-size: 1.1rem;
+  }
+
+  .category-card__description {
+    font-size: 0.8125rem;
+  }
+
+  .category-card__arrow {
+    bottom: 1.25rem;
+    right: 1.25rem;
+    width: 20px;
+    height: 20px;
+  }
+}
+
+@media (max-width: 480px) {
+  .category-card__content {
+    padding: 1rem 1rem 0.5rem 1rem;
+  }
+
+  .category-card__name {
+    font-size: 0.95rem;
+  }
+
+  .category-card__description {
+    font-size: 0.75rem;
+  }
+
+  .category-card__arrow {
+    bottom: 1rem;
+    right: 1rem;
+    width: 18px;
+    height: 18px;
+  }
+
+  .category-card__placeholder-icon {
+    width: 40px;
+    height: 40px;
+  }
+}
