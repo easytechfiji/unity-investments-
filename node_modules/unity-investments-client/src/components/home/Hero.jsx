@@ -1,103 +1,51 @@
-import React, { useState, useEffect, useRef } from 'react'
-import { motion, AnimatePresence } from 'framer-motion'
-import useCategories from '../../hooks/useCategories'
+import React from 'react'
 
 export default function Hero() {
-  const { data: categories = [], loading } = useCategories()
-  const [index, setIndex] = useState(0)
-  const containerRef = useRef(null)
-
-  // keep index within bounds
-  useEffect(() => {
-    if (!categories || categories.length === 0) setIndex(0)
-    else setIndex((i) => Math.min(i, Math.max(0, categories.length - 1)))
-  }, [categories])
-
-  const prev = () => setIndex((i) => (i - 1 + categories.length) % Math.max(1, categories.length))
-  const next = () => setIndex((i) => (i + 1) % Math.max(1, categories.length))
-
   return (
-    <header className="hero">
-      <div className="hero-inner container" ref={containerRef}>
+    <header className="hero" id="home">
+      <div className="hero-inner container">
         <div className="hero-copy">
-          <div className="eyebrow">Est. 2024 — Premium Catalogue</div>
-          <motion.h1
-            initial={{ opacity: 0, y: 8 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.7 }}
-          >
-            Every product,
-            <span className="accent"> curated beautifully.</span>
-          </motion.h1>
-
-          <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.25 }}>
-            From high-performance vehicles to everyday essentials — a single, refined space for everything worth owning.
-          </motion.p>
+          <p className="eyebrow">MULTI-CATEGORY RETAIL TRADING</p>
+          <h1>Retail products sourced across everyday and premium categories.</h1>
+          <p>
+            Unity Investment buys and sells products from different retailers, covering vehicles, phones, electronics, home goods, blankets and daily essentials.
+          </p>
 
           <div className="hero-ctas">
-            <motion.button whileHover={{ scale: 1.03 }} className="btn primary">Browse catalogue</motion.button>
-            <motion.button whileHover={{ scale: 1.03 }} className="btn ghost">Learn more</motion.button>
+            <a className="btn btn-primary" href="#catalogue">Browse Products</a>
+            <a className="btn btn-secondary" href="#about">How It Works</a>
           </div>
         </div>
 
-        <div className="hero-media">
-          <div className="carousel">
-            <button className="carousel-arrow left" onClick={prev} aria-label="Previous">‹</button>
-
-            <div className="carousel-frame">
-              <AnimatePresence initial={false} mode="popLayout">
-                {categories && categories.slice(index, index + 3).map((cat, i) => (
-                  <motion.div
-                    key={cat?.id ?? `${index}-${i}`}
-                    initial={{ opacity: 0, x: 20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    exit={{ opacity: 0, x: -20 }}
-                    transition={{ duration: 0.45 }}
-                    className="card"
-                    onClick={() => {
-                      // optional: navigate to category; left for later
-                    }}
-                  >
-                    <div className="card-media" />
-                    <div className="card-body">
-                      <div className="card-category">{cat?.name || 'Category'}</div>
-                      <h4 className="card-title">{cat?.description || 'Beautiful products'}</h4>
-                    </div>
-                  </motion.div>
-                ))}
-              </AnimatePresence>
-            </div>
-
-            <button className="carousel-arrow right" onClick={next} aria-label="Next">›</button>
-          </div>
-        </div>
       </div>
 
       <style>{`
-        .hero { padding: 80px 0; background: linear-gradient(180deg, var(--cream) 0%, #fff 100%); }
-        .hero-inner { display: grid; grid-template-columns: 1fr 520px; gap: 48px; align-items: center; }
-        .hero-copy .eyebrow { color: var(--accent); text-transform: uppercase; letter-spacing: 0.08em; font-size: 0.8rem; margin-bottom: 12px; }
-        .hero-copy h1 { font-family: var(--font-display); font-size: clamp(2rem, 5vw, 3.5rem); margin: 0 0 12px 0; line-height: 1.02; }
-        .hero-copy .accent { color: var(--accent); }
-        .hero-copy p { color: var(--ink-soft); max-width: 46ch; margin-bottom: 20px; }
-        .hero-ctas { display: flex; gap: 12px; }
-        .btn { padding: 12px 18px; border-radius: 8px; border: 1px solid transparent; cursor: pointer; font-weight: 500; }
-        .btn.primary { background: var(--ink); color: var(--white); }
-        .btn.ghost { background: transparent; border-color: var(--border); color: var(--ink); }
+        .hero { position: relative; min-height: 100vh; padding: 126px clamp(24px, 5vw, 80px) 64px; background: #fbfaf8; color: var(--ink); overflow: hidden; scroll-margin-top: 90px; }
+        .hero::before { content: ''; position: absolute; inset: 0; background-image: radial-gradient(rgba(17,17,17,0.085) 0.8px, transparent 0.8px), linear-gradient(90deg, rgba(15,23,42,0.035) 1px, transparent 1px), linear-gradient(180deg, rgba(15,23,42,0.03) 1px, transparent 1px), radial-gradient(circle at 18% 22%, rgba(200,169,110,0.24), transparent 26%), radial-gradient(circle at 82% 18%, rgba(30,58,138,0.16), transparent 28%), radial-gradient(circle at 74% 86%, rgba(59,130,246,0.09), transparent 30%), linear-gradient(180deg, rgba(255,255,255,0.88), rgba(249,247,244,0.94)); background-size: 18px 18px, 120px 120px, 120px 120px, 100% 100%, 100% 100%, 100% 100%, 100% 100%; opacity: 1; pointer-events: none; }
+        .hero::after { content: ''; position: absolute; inset: 0; background: linear-gradient(115deg, rgba(255,255,255,0.78) 0%, rgba(255,255,255,0.52) 48%, rgba(255,255,255,0.72) 100%); pointer-events: none; }
+        .hero-inner { position: relative; z-index: 1; }
+        .hero-inner { display: block; }
+        .hero-copy { max-width: 920px; }
+        .eyebrow { margin: 0 0 22px; color: var(--accent); font-size: 0.76rem; font-weight: 700; letter-spacing: 0.18em; text-transform: uppercase; }
+        .hero h1 { margin: 0 0 24px; max-width: 900px; font-size: clamp(2.9rem, 6.6vw, 5.8rem); line-height: 0.98; letter-spacing: -0.035em; }
+        .hero-copy p { margin: 0 0 34px; max-width: 690px; color: var(--ink-soft); font-size: clamp(1rem, 1.4vw, 1.16rem); line-height: 1.8; }
 
-        .hero-media { display: flex; justify-content: center; }
-        .carousel { display: flex; align-items: center; gap: 12px; }
-        .carousel-arrow { background: transparent; border: 1px solid var(--border); width: 44px; height: 44px; border-radius: 8px; cursor: pointer; font-size: 22px; color: var(--ink-soft); }
-        .carousel-frame { display: flex; gap: 16px; overflow: hidden; width: 420px; }
-        .card { width: 140px; background: var(--white); border-radius: 12px; box-shadow: 0 6px 20px rgba(17,17,17,0.06); cursor: pointer; display: flex; flex-direction: column; }
-        .card-media { height: 92px; background: #ede9e2; border-top-left-radius: 12px; border-top-right-radius: 12px; }
-        .card-body { padding: 10px; }
-        .card-category { font-size: 0.75rem; color: var(--accent); text-transform: uppercase; }
-        .card-title { margin: 6px 0 0 0; font-size: 0.95rem; }
+        .hero-ctas { display: flex; gap: 14px; flex-wrap: wrap; }
+        .btn { display: inline-flex; align-items: center; justify-content: center; min-width: 168px; padding: 15px 22px; border-radius: 999px; border: 1px solid transparent; cursor: pointer; font-size: 0.86rem; text-transform: uppercase; letter-spacing: 0.08em; font-weight: 700; transition: transform 220ms var(--ease-out), box-shadow 220ms var(--ease-out), background 220ms var(--ease-out), color 220ms var(--ease-out); }
+        .btn:hover { transform: translateY(-2px); box-shadow: 0 18px 50px rgba(15, 23, 42, 0.12); }
+        .btn-primary { background: var(--blue-dark); color: var(--white); }
+        .btn-secondary { background: transparent; color: var(--ink); border-color: var(--accent); }
 
-        @media (max-width: 980px) { .hero-inner { grid-template-columns: 1fr; } .hero-media { margin-top: 28px; } }
+        @media (max-width: 920px) {
+          .hero { padding: 112px 24px 56px; }
+        }
+
+        @media (max-width: 560px) {
+          .hero { padding-top: 104px; }
+          .hero-ctas { flex-direction: column; }
+          .btn { width: 100%; }
+        }
       `}</style>
     </header>
   )
 }
-

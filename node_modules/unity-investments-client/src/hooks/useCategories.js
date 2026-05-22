@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 
 export default function useCategories() {
-  const [data, setData] = useState(null);
+  const [data, setData] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
@@ -9,6 +9,7 @@ export default function useCategories() {
     let mounted = true;
     const base = import.meta.env.VITE_API_URL || '';
     setLoading(true);
+
     fetch(`${base}/api/categories`)
       .then((r) => {
         if (!r.ok) throw new Error('Network response was not ok');
@@ -16,7 +17,7 @@ export default function useCategories() {
       })
       .then((json) => {
         if (!mounted) return;
-        setData(json);
+        setData(Array.isArray(json) ? json : []);
       })
       .catch((err) => {
         if (!mounted) return;

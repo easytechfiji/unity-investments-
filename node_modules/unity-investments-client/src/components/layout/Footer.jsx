@@ -4,74 +4,64 @@ export default function Footer() {
   const linkStyle = {
     fontSize: '0.72rem',
     textDecoration: 'none',
-    color: 'inherit',
+    color: 'rgba(255,255,255,0.72)',
     textTransform: 'uppercase',
-    transition: 'color 0.3s ease',
+    transition: 'color 0.25s ease',
     cursor: 'pointer',
+    fontWeight: 700,
+    letterSpacing: '0.08em',
   };
 
   return (
     <footer style={{
-      borderTop: '1px solid var(--border, #e0e0e0)',
+      borderTop: '1px solid rgba(200, 169, 110, 0.2)',
       display: 'flex',
       justifyContent: 'space-between',
       alignItems: 'center',
-      padding: 'clamp(32px, 5vw, 48px) clamp(16px, 10vw, 80px)',
-      backgroundColor: 'var(--white)',
+      padding: 'clamp(28px, 4vw, 44px) clamp(16px, 10vw, 80px)',
+      backgroundColor: '#090c14',
+      color: '#f8f8f8',
       gap: '20px',
       flexWrap: 'wrap',
       width: '100%',
       boxSizing: 'border-box',
     }}>
-      <div style={{ fontSize: '1.2rem', fontWeight: 'bold' }}>
-        VAULT
+      <div style={{ fontSize: '1rem', fontWeight: '800', letterSpacing: '0.02em' }}>
+        Unity Investment
       </div>
-      
-      <div style={{ 
+
+      <div style={{
         textAlign: 'center',
         fontSize: '0.72rem',
         flex: 1,
-        minWidth: '150px'
+        minWidth: '180px',
+        color: 'rgba(255,255,255,0.72)',
       }}>
-        © 2024 Vault. All rights reserved.
+        © 2024 Unity Investment. All rights reserved.
       </div>
-      
+
       <nav style={{
         display: 'flex',
-        gap: '24px',
+        gap: '22px',
+        flexWrap: 'wrap',
+        justifyContent: 'flex-end',
       }}>
-        <Link 
-          to="/" 
-          style={linkStyle}
-          onMouseEnter={(e) => e.currentTarget.style.color = 'var(--accent)'}
-          onMouseLeave={(e) => e.currentTarget.style.color = 'inherit'}
-        >
-          Home
-        </Link>
-        <Link 
-          to="/products" 
-          style={linkStyle}
-          onMouseEnter={(e) => e.currentTarget.style.color = 'var(--accent)'}
-          onMouseLeave={(e) => e.currentTarget.style.color = 'inherit'}
-        >
-          Products
-        </Link>
-        <Link 
-          to="/about" 
-          style={linkStyle}
-          onMouseEnter={(e) => e.currentTarget.style.color = 'var(--accent)'}
-          onMouseLeave={(e) => e.currentTarget.style.color = 'inherit'}
-        >
-          About
-        </Link>
-        <Link 
-          to="/contact" 
-          style={linkStyle}
-          onMouseEnter={(e) => e.currentTarget.style.color = 'var(--accent)'}
-          onMouseLeave={(e) => e.currentTarget.style.color = 'inherit'}
-        >
-          Contact
-        </Link>
+        {[
+          ['Home', '/'],
+          ['Products', '/#catalogue'],
+          ['About', '/#about'],
+          ['Contact', '/#contact'],
+        ].map(([label, to]) => (
+          <Link
+            key={label}
+            to={to}
+            style={linkStyle}
+            onMouseEnter={(e) => e.currentTarget.style.color = 'var(--accent)'}
+            onMouseLeave={(e) => e.currentTarget.style.color = 'rgba(255,255,255,0.72)'}
+          >
+            {label}
+          </Link>
+        ))}
       </nav>
     </footer>
   );
