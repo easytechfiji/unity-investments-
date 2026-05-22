@@ -48,7 +48,7 @@ const fallbackCategories = catalogueCategorySeed.map((category) => ({
 
 export default function CataloguePreview() {
   const navigate = useNavigate()
-  const { data: categories = [], loading, error } = useCategories()
+  const { data: categories = [], loading } = useCategories()
   const visibleCategories = categories.length > 0 ? categories : fallbackCategories
   const carouselRef = useRef(null)
   const [activeIndex, setActiveIndex] = useState(0)
@@ -118,7 +118,7 @@ export default function CataloguePreview() {
   }, [maxIndex])
 
   useEffect(() => {
-    if (loading || error || isPaused || maxIndex === 0) return undefined
+    if (loading || isPaused || maxIndex === 0) return undefined
 
     const intervalId = window.setInterval(() => {
       setActiveIndex((currentIndex) => {
@@ -138,7 +138,7 @@ export default function CataloguePreview() {
     }, 4200)
 
     return () => window.clearInterval(intervalId)
-  }, [error, isPaused, loading, maxIndex])
+  }, [isPaused, loading, maxIndex])
 
   useEffect(() => {
     const carousel = carouselRef.current
@@ -172,20 +172,8 @@ export default function CataloguePreview() {
     <section className="catalogue-section" id="catalogue">
       <div className="catalogue-inner container">
         <div className="catalogue-header">
-          <div>
-            <p className="eyebrow">PRODUCT CATEGORIES</p>
-            <h2>Browse what Unity Investment buys and sells.</h2>
-          </div>
-          <p>
-            A practical catalogue for mixed retail products, from vehicles and tech to household essentials.
-          </p>
+          <h2>Catalogue</h2>
         </div>
-
-        {error && (
-          <div className="catalogue-message">
-            Failed to load categories. Please refresh to try again.
-          </div>
-        )}
 
         {loading && (
           <div className="category-carousel-shell loading-skeletons" aria-label="Loading categories">
@@ -195,7 +183,7 @@ export default function CataloguePreview() {
           </div>
         )}
 
-        {!loading && !error && (
+        {!loading && (
           <div
             className="category-carousel-wrap"
             onMouseEnter={() => setIsPaused(true)}
@@ -207,6 +195,9 @@ export default function CataloguePreview() {
               <div className="carousel-progress" aria-hidden="true">
                 <span style={{ width: `${((activeIndex + 1) / (maxIndex + 1)) * 100}%` }} />
               </div>
+            </div>
+
+            <div className="category-carousel-shell">
               <div className="catalogue-controls" aria-label="Catalogue carousel controls">
                 <button
                   className="catalogue-nav prev"
@@ -221,9 +212,6 @@ export default function CataloguePreview() {
                   aria-label="Next categories"
                 />
               </div>
-            </div>
-
-            <div className="category-carousel-shell">
               <div
                 ref={carouselRef}
                 className="category-carousel"
@@ -236,6 +224,7 @@ export default function CataloguePreview() {
                     type="button"
                     onClick={() => handleCategoryClick(category.slug)}
                     aria-label={`View ${category.name}`}
+                    style={{ '--card-index': String(index) }}
                   >
                     <span className="category-card-index">
                       {String(index + 1).padStart(2, '0')}
@@ -270,34 +259,32 @@ export default function CataloguePreview() {
       </div>
 
       <style>{`
-        .catalogue-section { padding: clamp(72px, 8vw, 112px) 0; background: radial-gradient(circle at 12% 8%, rgba(200,169,110,0.14), transparent 30%), #0b1120; color: var(--white); scroll-margin-top: 90px; overflow: hidden; }
-        .catalogue-inner { display: grid; gap: 42px; }
-        .catalogue-header { display: grid; grid-template-columns: minmax(0, 0.9fr) minmax(280px, 0.62fr); gap: clamp(28px, 5vw, 72px); align-items: end; }
-        .catalogue-header .eyebrow { margin: 0 0 16px; color: var(--accent); font-size: 0.76rem; font-weight: 700; letter-spacing: 0.18em; text-transform: uppercase; }
-        .catalogue-header h2 { margin: 0; max-width: 760px; color: var(--white); font-size: clamp(2.35rem, 5vw, 4.4rem); line-height: 1; }
-        .catalogue-header p { margin: 0; color: rgba(255,255,255,0.64); line-height: 1.75; }
+        .catalogue-section { padding: clamp(72px, 8vw, 112px) 0; background: #0b1120; color: var(--white); scroll-margin-top: 90px; overflow: hidden; }
+        .catalogue-inner { display: grid; gap: 30px; min-width: 0; }
+        .catalogue-header { display: flex; align-items: end; justify-content: space-between; gap: 24px; min-width: 0; }
+        .catalogue-header h2 { margin: 0; color: var(--white); font-size: clamp(2.7rem, 6vw, 5rem); line-height: 0.96; }
 
-        .category-carousel-wrap { display: grid; gap: 18px; }
-        .category-carousel-top { display: flex; align-items: center; justify-content: space-between; gap: 24px; }
-        .carousel-progress { position: relative; flex: 1 1 auto; height: 1px; overflow: hidden; background: rgba(255,255,255,0.12); }
+        .category-carousel-wrap { display: grid; gap: 18px; min-width: 0; }
+        .category-carousel-top { display: block; }
+        .carousel-progress { position: relative; width: 100%; height: 1px; overflow: hidden; background: rgba(255,255,255,0.12); }
         .carousel-progress span { position: absolute; inset: 0 auto 0 0; background: linear-gradient(90deg, var(--accent), var(--accent-light)); transition: width 520ms var(--ease-out); }
-        .catalogue-controls { display: flex; gap: 10px; }
-        .catalogue-nav { position: relative; width: 46px; height: 46px; border: 1px solid rgba(255,255,255,0.16); border-radius: 50%; background: rgba(255,255,255,0.05); color: var(--white); cursor: pointer; transition: transform 220ms var(--ease-out), border-color 220ms var(--ease-out), background 220ms var(--ease-out); }
+        .catalogue-controls { position: absolute; inset: 8px 8px 18px; z-index: 4; display: flex; align-items: center; justify-content: space-between; pointer-events: none; }
+        .catalogue-nav { position: relative; width: 46px; height: 46px; border: 1px solid rgba(255,255,255,0.2); border-radius: 50%; background: rgba(11,17,32,0.74); box-shadow: 0 16px 42px rgba(0,0,0,0.24); color: var(--white); cursor: pointer; pointer-events: auto; transition: transform 220ms var(--ease-out), border-color 220ms var(--ease-out), background 220ms var(--ease-out); }
         .catalogue-nav::before { content: ''; position: absolute; top: 50%; left: 50%; width: 10px; height: 10px; border-top: 2px solid currentColor; border-right: 2px solid currentColor; transition: transform 220ms var(--ease-out); }
         .catalogue-nav.prev::before { transform: translate(-35%, -50%) rotate(-135deg); }
         .catalogue-nav.next::before { transform: translate(-65%, -50%) rotate(45deg); }
-        .catalogue-nav:hover { transform: translateY(-2px); border-color: rgba(200,169,110,0.8); background: rgba(200,169,110,0.12); }
+        .catalogue-nav:hover { transform: translateY(-2px); border-color: rgba(200,169,110,0.8); background: rgba(32,42,60,0.92); }
         .catalogue-nav:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
 
-        .category-carousel-shell { position: relative; margin: 0 -32px; padding: 8px 32px 18px; }
+        .category-carousel-shell { position: relative; width: calc(100% + 136px); min-width: 0; margin: 0 -68px; padding: 8px 68px 18px; }
         .category-carousel-shell::before,
-        .category-carousel-shell::after { content: ''; position: absolute; top: 0; bottom: 0; z-index: 2; width: 46px; pointer-events: none; }
+        .category-carousel-shell::after { content: ''; position: absolute; top: 0; bottom: 0; z-index: 2; width: 68px; pointer-events: none; }
         .category-carousel-shell::before { left: 0; background: linear-gradient(90deg, #0b1120, rgba(11,17,32,0)); }
         .category-carousel-shell::after { right: 0; background: linear-gradient(270deg, #0b1120, rgba(11,17,32,0)); }
         .loading-skeletons { display: flex; gap: 18px; overflow: hidden; }
-        .category-carousel { display: flex; gap: 18px; overflow-x: auto; scroll-snap-type: x mandatory; scroll-behavior: smooth; scrollbar-width: none; -webkit-overflow-scrolling: touch; }
+        .category-carousel { display: flex; min-width: 0; gap: 18px; overflow-x: auto; overscroll-behavior-x: contain; scroll-snap-type: x mandatory; scroll-behavior: smooth; scrollbar-width: none; touch-action: pan-x; -webkit-overflow-scrolling: touch; }
         .category-carousel::-webkit-scrollbar { display: none; }
-        .category-card { position: relative; isolation: isolate; flex: 0 0 calc((100% - 36px) / 3); min-height: 330px; display: flex; flex-direction: column; justify-content: space-between; overflow: hidden; padding: 24px; border: 1px solid rgba(255,255,255,0.12); border-radius: 8px; background: linear-gradient(145deg, rgba(255,255,255,0.1), rgba(255,255,255,0.035)); color: inherit; text-align: left; cursor: pointer; scroll-snap-align: start; transform: translateZ(0); transition: transform 320ms var(--ease-out), border-color 320ms var(--ease-out), box-shadow 320ms var(--ease-out), background 320ms var(--ease-out); }
+        .category-card { position: relative; isolation: isolate; flex: 0 0 calc((100% - 36px) / 3); min-width: 0; min-height: 330px; display: flex; flex-direction: column; justify-content: space-between; overflow: hidden; padding: 24px; border: 1px solid rgba(255,255,255,0.12); border-radius: 8px; background: linear-gradient(145deg, rgba(255,255,255,0.1), rgba(255,255,255,0.035)); color: inherit; text-align: left; cursor: pointer; scroll-snap-align: start; transform: translateZ(0); animation: cardRise 560ms var(--ease-out) both; animation-delay: calc(var(--card-index, 0) * 70ms); transition: transform 320ms var(--ease-out), border-color 320ms var(--ease-out), box-shadow 320ms var(--ease-out), background 320ms var(--ease-out); }
         .category-card::before { content: ''; position: absolute; inset: 0; z-index: -2; background: linear-gradient(135deg, rgba(200,169,110,0.24), transparent 48%, rgba(59,130,246,0.12)); opacity: 0; transition: opacity 320ms var(--ease-out); }
         .category-card::after { content: ''; position: absolute; inset: auto -20% -45% 20%; z-index: -1; height: 190px; background: radial-gradient(circle, rgba(200,169,110,0.22), transparent 68%); transform: translateY(28px); opacity: 0.6; transition: transform 420ms var(--ease-out), opacity 420ms var(--ease-out); }
         .category-card:hover { transform: translateY(-8px); border-color: rgba(200,169,110,0.56); background: rgba(255,255,255,0.08); box-shadow: 0 26px 70px rgba(0,0,0,0.28); }
@@ -318,8 +305,12 @@ export default function CataloguePreview() {
         .category-dots button:hover { transform: translateY(-1px); background: rgba(232,217,191,0.72); }
         .category-dots button:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; }
 
-        .catalogue-message { padding: 22px 0; border-top: 1px solid rgba(200,169,110,0.35); border-bottom: 1px solid rgba(200,169,110,0.35); color: var(--accent); }
         .category-skeleton { flex: 0 0 calc((100% - 36px) / 3); min-height: 330px; border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; background: linear-gradient(90deg, rgba(255,255,255,0.035), rgba(255,255,255,0.075), rgba(255,255,255,0.035)); background-size: 220% 100%; animation: categoryShimmer 1.4s ease-in-out infinite; }
+
+        @keyframes cardRise {
+          from { opacity: 0; transform: translate3d(0, 18px, 0); }
+          to { opacity: 1; transform: translate3d(0, 0, 0); }
+        }
 
         @keyframes categoryShimmer {
           0% { background-position: 120% 0; }
@@ -349,23 +340,25 @@ export default function CataloguePreview() {
         }
 
         @media (max-width: 820px) {
-          .catalogue-section { padding: 64px 24px; }
-          .catalogue-header { grid-template-columns: 1fr; align-items: start; }
-          .category-carousel-top { align-items: flex-start; }
-          .catalogue-controls { flex: 0 0 auto; }
-          .category-carousel-shell { margin: 0 -24px; padding-inline: 24px; }
+          .catalogue-section { padding: 64px 0; }
+          .catalogue-header { align-items: start; }
+          .category-carousel-shell { width: calc(100% + 40px); margin: 0 -20px; padding-inline: 52px; }
+          .category-carousel-shell::before,
+          .category-carousel-shell::after { width: 52px; }
           .category-card,
-          .category-skeleton { flex-basis: min(88%, 420px); min-height: 310px; }
+          .category-skeleton { flex-basis: 100%; min-height: 310px; }
           .category-card-copy { padding-top: 76px; }
           .category-card small { min-height: 0; }
         }
 
         @media (max-width: 520px) {
-          .category-carousel-top { display: grid; grid-template-columns: 1fr; }
-          .catalogue-controls { justify-self: end; }
-          .category-card,
-          .category-skeleton { flex-basis: 100%; }
+          .catalogue-inner { gap: 22px; }
+          .catalogue-nav { width: 40px; height: 40px; }
+          .category-carousel-shell { width: calc(100% + 24px); margin: 0 -12px; padding-inline: 42px; }
+          .category-carousel-shell::before,
+          .category-carousel-shell::after { width: 42px; }
           .category-card { padding: 22px; }
+          .category-card-mark { font-size: 4.8rem; }
           .category-card strong { font-size: 1.55rem; }
         }
       `}</style>

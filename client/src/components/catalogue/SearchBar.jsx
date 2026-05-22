@@ -13,11 +13,18 @@ export default function SearchBar({ onSearch = () => {}, onSort = () => {} }) {
       </div>
 
       <style>{`
-        .search-wrap { padding: 40px 80px; }
+        .search-wrap { padding: 34px 0 24px; background: #f9f7f4; }
         .search-inner { display: flex; gap: 16px; align-items: center; }
-        .search-input { flex: 1; padding: 12px 16px; border: 1px solid var(--border); background: var(--white); }
-        .sort-select { padding: 12px 14px; border: 1px solid var(--border); background: var(--white); }
-        @media (max-width: 768px) { .search-inner { flex-direction: column; align-items: stretch; } .search-wrap { padding: 20px; } }
+        .search-input { flex: 1; width: 100%; min-height: 48px; padding: 12px 16px; border: 1px solid var(--border); border-radius: 8px; background: var(--white); color: var(--ink); }
+        .sort-select { min-height: 48px; padding: 12px 14px; border: 1px solid var(--border); border-radius: 8px; background: var(--white); color: var(--ink); }
+        .search-input:focus,
+        .sort-select:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 4px rgba(200,169,110,0.14); }
+
+        @media (max-width: 768px) {
+          .search-wrap { padding: 24px 0; }
+          .search-inner { flex-direction: column; align-items: stretch; gap: 12px; }
+          .sort-select { width: 100%; }
+        }
       `}</style>
     </div>
   )

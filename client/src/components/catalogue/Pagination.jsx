@@ -15,8 +15,15 @@ const Pagination = ({ currentPage = 1, totalPages = 1, onPageChange = () => {} }
       <button onClick={() => onPageChange(currentPage + 1)} disabled={currentPage >= totalPages}>Next</button>
 
       <style>{`
-        .pagination { display: flex; gap: 8px; justify-content: center; align-items: center; padding: 20px 0; }
+        .pagination { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; align-items: center; padding: 24px 0 0; }
+        .pagination button { min-height: 40px; padding: 8px 13px; border: 1px solid var(--border); border-radius: 8px; background: var(--white); color: var(--ink); cursor: pointer; }
+        .pagination button[aria-current="true"] { border-color: var(--accent); background: var(--accent); color: var(--white); }
         .pagination button[disabled] { opacity: 0.5; cursor: default; }
+
+        @media (max-width: 480px) {
+          .pagination { justify-content: stretch; }
+          .pagination button { flex: 1 1 auto; }
+        }
       `}</style>
     </div>
   );

@@ -148,15 +148,23 @@ cp .env.example .env.local
 SUPABASE_URL=https://your-project.supabase.co
 SUPABASE_ANON_KEY=your-anon-key
 SUPABASE_SERVICE_ROLE_KEY=your-service-role-key
+SUPABASE_STORAGE_BUCKET=item-images
 
 # Auth
 JWT_SECRET=your-long-random-secret
 
 # App
 NODE_ENV=development
+PORT=4000
+CORS_ORIGIN=http://localhost:5173,http://127.0.0.1:5173
 VITE_API_URL=http://localhost:4000
 VITE_SUPABASE_URL=https://your-project.supabase.co
 VITE_SUPABASE_ANON_KEY=your-anon-key
+
+# Resend contact form
+RESEND_API_KEY=re_your-resend-api-key
+RESEND_FROM_EMAIL="Unity Investment <onboarding@resend.dev>"
+CONTACT_EMAIL_TO=you@example.com
 ```
 
 > `SUPABASE_SERVICE_ROLE_KEY` and `JWT_SECRET` are server-side only. Never prefix them with `VITE_` — Vite would expose them to the browser.
@@ -305,7 +313,11 @@ Push to `main` → auto-deploy. That's it.
 | `SUPABASE_URL` | Server | ✅ |
 | `SUPABASE_ANON_KEY` | Server | ✅ |
 | `SUPABASE_SERVICE_ROLE_KEY` | Server only | ❌ Never |
+| `SUPABASE_STORAGE_BUCKET` | Server | ✅ |
 | `JWT_SECRET` | Server only | ❌ Never |
+| `RESEND_API_KEY` | Server only | ❌ Never |
+| `RESEND_FROM_EMAIL` | Server only | ✅ |
+| `CONTACT_EMAIL_TO` | Server only | ✅ |
 | `VITE_SUPABASE_URL` | Client | ✅ |
 | `VITE_SUPABASE_ANON_KEY` | Client | ✅ |
 | `VITE_API_URL` | Client | ✅ |
