@@ -10,9 +10,9 @@
     "dev": "concurrently \"cd client && npm run dev\" \"cd server && npm run dev\"",
     "build": "npm --workspace client run build && npm --workspace server run build",
     "test": "npm run test:unit && npm run test:integration && npm run test:e2e",
-    "test:unit": "vitest run",
-    "test:integration": "vitest run --include '**/*.integration.js'",
-    "test:e2e": "playwright test"
+    "test:unit": "vitest run tests/unit",
+    "test:integration": "vitest run tests/integration",
+    "test:e2e": "playwright test tests/e2e"
   },
   "devDependencies": {
     "concurrently": "^8.0.0"
