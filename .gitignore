@@ -16,3 +16,7 @@ server/dist/
 *.log
 *.err.log
 
+# Tool caches
+.vitest-cache/
+test-results/
+.edge-profile/
