@@ -29,18 +29,26 @@
 }
 
 .nav__logo {
-  font-family: var(--font-display, 'Inter Tight', sans-serif);
-  font-size: 1.08rem;
-  font-weight: 800;
-  letter-spacing: 0.02em;
-  color: var(--ink);
-  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  flex: 0 0 auto;
   transition: color 220ms var(--ease-out), transform 220ms var(--ease-out);
 }
 
 .nav__logo:hover {
-  color: var(--accent);
   transform: translateY(-1px);
+}
+
+.nav__logo a {
+  display: inline-flex;
+  align-items: center;
+}
+
+.nav__logo-file {
+  display: block;
+  width: clamp(136px, 16vw, 190px);
+  height: 52px;
+  pointer-events: none;
 }
 
 .nav__toggle {
@@ -142,7 +150,12 @@
   }
 
   .nav__logo {
-    font-size: 1.35rem;
+    max-width: calc(100% - 58px);
+  }
+
+  .nav__logo-file {
+    width: clamp(126px, 44vw, 172px);
+    height: 46px;
   }
 
   .nav__toggle {
@@ -197,7 +210,12 @@
   }
 
   .nav__logo {
-    font-size: 1.2rem;
+    max-width: calc(100% - 58px);
+  }
+
+  .nav__logo-file {
+    width: clamp(116px, 48vw, 154px);
+    height: 42px;
   }
 
   .nav__links {

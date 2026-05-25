@@ -189,6 +189,7 @@ create table categories (
   name text not null,
   slug text unique not null,
   description text,
+  sort_order integer default 0,
   cover_image_url text,
   created_at timestamptz default now()
 );
@@ -199,19 +200,29 @@ create table items (
   name text not null,
   description text,
   category_id uuid references categories(id),
+  price numeric(10, 2),
+  image_path text,
   image_url text,
   tags text[],
-  published boolean default true,
+  is_active boolean default true,
   created_at timestamptz default now(),
   updated_at timestamptz default now()
 );
+
+-- If your tables already exist, run this instead of recreating them:
+alter table categories add column if not exists sort_order integer default 0;
+alter table items add column if not exists price numeric(10, 2);
+alter table items add column if not exists image_path text;
+alter table items add column if not exists image_url text;
+alter table items add column if not exists tags text[] default '{}';
+alter table items add column if not exists is_active boolean default true;
 
 -- Row Level Security
 alter table items enable row level security;
 alter table categories enable row level security;
 
 create policy "Public read published items"
-  on items for select using (published = true);
+  on items for select using (is_active = true);
 
 create policy "Public read categories"
   on categories for select using (true);
@@ -219,7 +230,7 @@ create policy "Public read categories"
 
 **Storage bucket:**
 1. Supabase → Storage → New bucket → name it `item-images` → set to public
-2. Upload product images here, copy the public URL, paste into the `image_url` field on the item row
+2. Upload product images here, copy the path inside the bucket, and paste it into the `image_path` field on the item row. Example: `vehicles/car-1.jpg`
 
 ---
 
@@ -228,17 +239,17 @@ create policy "Public read categories"
 No code. No deploys. Everything happens in the Supabase dashboard.
 
 **Add a product:**
-1. Upload image to Storage → `item-images`, copy the public URL
+1. Upload image to Storage → `item-images`, then copy the file path inside the bucket
 2. Table editor → `items` → Insert row
-3. Fill in `name`, `description`, `category_id`, paste `image_url`
-4. Set `published = true`
+3. Fill in `name`, `description`, `price`, `category_id`, and `image_path`
+4. Set `is_active = true`
 5. Live immediately
 
 **Edit a product:**
 Find the row in `items`, edit any field, save. Done.
 
 **Hide a product without deleting:**
-Set `published = false`.
+Set `is_active = false`.
 
 **Add a new category:**
 Insert a row into `categories` with a `name` and `slug` (e.g. `watches`). The homepage catalogue preview and the route `/category/watches` work automatically — no code changes needed.

@@ -26,9 +26,25 @@ export default function Footer() {
       width: '100%',
       boxSizing: 'border-box',
     }}>
-      <div style={{ fontSize: '1rem', fontWeight: '800', letterSpacing: '0.02em' }}>
-        Unity Investment
-      </div>
+      <Link to="/" aria-label="Unity Investment home" style={{
+        display: 'inline-flex',
+        alignItems: 'center',
+        flex: '0 0 auto',
+      }}>
+        <object
+          data="/brand/company-logo.pdf"
+          type="application/pdf"
+          aria-label="Unity Investment"
+          style={{
+            display: 'block',
+            width: 'clamp(130px, 16vw, 180px)',
+            height: '48px',
+            pointerEvents: 'none',
+          }}
+        >
+          Unity Investment
+        </object>
+      </Link>
 
       <div style={{
         textAlign: 'center',

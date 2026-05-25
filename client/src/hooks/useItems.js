@@ -58,6 +58,7 @@ export default function useItems({ category, page = 1, limit = 12, search = '' }
           id,
           name,
           description,
+          image_url,
           image_path,
           price,
           tags,

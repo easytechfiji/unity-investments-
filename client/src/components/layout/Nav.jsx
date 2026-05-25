@@ -59,7 +59,16 @@ export default function Nav() {
         animate={{ opacity: 1 }}
         transition={{ duration: 0.6, delay: 0.1 }}
       >
-        <Link to="/">Unity Investment</Link>
+        <Link to="/" aria-label="Unity Investment home">
+          <object
+            className="nav__logo-file"
+            data="/brand/company-logo.pdf"
+            type="application/pdf"
+            aria-label="Unity Investment"
+          >
+            Unity Investment
+          </object>
+        </Link>
       </motion.div>
 
       <button

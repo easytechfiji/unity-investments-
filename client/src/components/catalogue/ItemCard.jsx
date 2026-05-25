@@ -1,7 +1,21 @@
 import React from 'react'
 import { motion } from 'framer-motion'
 
-export default function ItemCard({ id, name, description, categoryName, imageUrl, tags = [] }) {
+const formatPrice = (price) => {
+  if (price === null || price === undefined || price === '') return ''
+
+  const numericPrice = Number(price)
+  if (!Number.isFinite(numericPrice)) return String(price)
+
+  return new Intl.NumberFormat('en-NZ', {
+    style: 'currency',
+    currency: 'NZD',
+  }).format(numericPrice)
+}
+
+export default function ItemCard({ id, name, description, categoryName, imageUrl, price, tags = [] }) {
+  const displayPrice = formatPrice(price)
+
   return (
     <motion.article
       className="item-card hover-elevate reveal"
@@ -14,7 +28,10 @@ export default function ItemCard({ id, name, description, categoryName, imageUrl
       </div>
 
       <div className="card-body">
-        <span className="badge">{categoryName}</span>
+        <div className="card-meta">
+          {categoryName && <span className="badge">{categoryName}</span>}
+          {displayPrice && <span className="card-price">{displayPrice}</span>}
+        </div>
         <h3 className="card-title">{name}</h3>
         <p className="card-desc">{description}</p>
       </div>
@@ -30,11 +47,17 @@ export default function ItemCard({ id, name, description, categoryName, imageUrl
         .card-image { width: 100%; aspect-ratio: 4 / 3; background-size: cover; background-position: center; background-color: #ede9e2; display: block; }
         .image-fallback { width: 100%; height: 100%; background: #ede9e2; }
         .card-body { padding: 14px 16px; flex: 1; }
-        .badge { display: inline-block; background: var(--accent); color: var(--white); padding: 6px 10px; border-radius: 20px; font-size: 0.75rem; text-transform: uppercase; margin-bottom: 8px; }
+        .card-meta { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 8px; }
+        .badge { display: inline-block; background: var(--accent); color: var(--white); padding: 6px 10px; border-radius: 20px; font-size: 0.75rem; text-transform: uppercase; }
+        .card-price { color: var(--ink); font-size: 0.92rem; font-weight: 800; white-space: nowrap; }
         .card-title { margin: 6px 0; font-size: 1rem; }
         .card-desc { color: var(--ink-soft); font-size: 0.9rem; }
         .card-arrow { position: absolute; top: 12px; right: 12px; color: var(--ink-soft); transition: transform 200ms ease; }
         .item-card:hover .card-arrow { transform: rotate(45deg); color: var(--accent); }
+
+        @media (max-width: 420px) {
+          .card-meta { align-items: flex-start; flex-direction: column; gap: 4px; }
+        }
       `}</style>
     </motion.article>
   )
