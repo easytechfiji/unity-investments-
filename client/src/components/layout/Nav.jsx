@@ -60,14 +60,7 @@ export default function Nav() {
         transition={{ duration: 0.6, delay: 0.1 }}
       >
         <Link to="/" aria-label="Unity Investment home">
-          <object
-            className="nav__logo-file"
-            data="/brand/company-logo.pdf"
-            type="application/pdf"
-            aria-label="Unity Investment"
-          >
-            Unity Investment
-          </object>
+          <img className="nav__logo-file" src="/brand/long%20wawy%20logo.png" alt="Unity Investment" />
         </Link>
       </motion.div>
 

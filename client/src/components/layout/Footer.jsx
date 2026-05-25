@@ -31,19 +31,17 @@ export default function Footer() {
         alignItems: 'center',
         flex: '0 0 auto',
       }}>
-        <object
-          data="/brand/company-logo.pdf"
-          type="application/pdf"
-          aria-label="Unity Investment"
+        <img
+          src="/brand/long%20wawy%20logo.png"
+          alt="Unity Investment"
           style={{
             display: 'block',
             width: 'clamp(130px, 16vw, 180px)',
             height: '48px',
-            pointerEvents: 'none',
+            objectFit: 'contain',
+            objectPosition: 'left center',
           }}
-        >
-          Unity Investment
-        </object>
+        />
       </Link>
 
       <div style={{
