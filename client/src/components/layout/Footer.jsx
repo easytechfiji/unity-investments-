@@ -32,7 +32,7 @@ export default function Footer() {
         flex: '0 0 auto',
       }}>
         <img
-          src="/brand/long%20wawy%20logo.png"
+          src="/brand/company-logo.png"
           alt="Unity Investment"
           style={{
             display: 'block',
