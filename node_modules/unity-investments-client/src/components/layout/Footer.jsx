@@ -4,7 +4,7 @@ export default function Footer() {
   const linkStyle = {
     fontSize: '0.72rem',
     textDecoration: 'none',
-    color: 'rgba(255,255,255,0.72)',
+    color: 'var(--ink-soft)',
     textTransform: 'uppercase',
     transition: 'color 0.25s ease',
     cursor: 'pointer',
@@ -19,8 +19,8 @@ export default function Footer() {
       justifyContent: 'space-between',
       alignItems: 'center',
       padding: 'clamp(28px, 4vw, 44px) clamp(16px, 10vw, 80px)',
-      backgroundColor: '#090c14',
-      color: '#f8f8f8',
+      backgroundColor: '#ffffff',
+      color: 'var(--ink)',
       gap: '20px',
       flexWrap: 'wrap',
       width: '100%',
@@ -35,9 +35,9 @@ export default function Footer() {
         fontSize: '0.72rem',
         flex: 1,
         minWidth: '180px',
-        color: 'rgba(255,255,255,0.72)',
+        color: 'var(--ink-soft)',
       }}>
-        © 2024 Unity Investment. All rights reserved.
+        Copyright 2024 Unity Investment. All rights reserved.
       </div>
 
       <nav style={{
@@ -57,7 +57,7 @@ export default function Footer() {
             to={to}
             style={linkStyle}
             onMouseEnter={(e) => e.currentTarget.style.color = 'var(--accent)'}
-            onMouseLeave={(e) => e.currentTarget.style.color = 'rgba(255,255,255,0.72)'}
+            onMouseLeave={(e) => e.currentTarget.style.color = 'var(--ink-soft)'}
           >
             {label}
           </Link>

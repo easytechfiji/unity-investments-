@@ -131,7 +131,7 @@ const Contact = () => {
       </div>
 
       <style>{`
-        .contact-section { padding: clamp(72px, 8vw, 120px) 0; background: #f9f7f4; border-top: 1px solid rgba(200,169,110,0.18); scroll-margin-top: 90px; color: var(--ink); }
+        .contact-section { padding: clamp(72px, 8vw, 120px) 0; background: var(--cream); border-top: 1px solid var(--border); scroll-margin-top: 90px; color: var(--ink); }
         .contact-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 72px; align-items: start; }
         .contact-left,
         .contact-form { min-width: 0; }
@@ -146,7 +146,7 @@ const Contact = () => {
         .form-input { width: 100%; background: var(--white); border: 1px solid rgba(17,17,17,0.1); color: var(--ink); padding: 16px 18px; border-radius: 8px; min-height: 54px; }
         .form-input::placeholder { color: var(--ink-muted); }
         .form-input:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 4px rgba(200,169,110,0.16); }
-        .submit-btn { margin-top: 8px; background: var(--blue-dark); color: var(--white); text-transform: uppercase; padding: 16px 18px; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; letter-spacing: 0.1em; transition: transform 220ms var(--ease-out), box-shadow 220ms var(--ease-out), background 220ms var(--ease-out); }
+        .submit-btn { margin-top: 8px; background: var(--blue); color: var(--white); text-transform: uppercase; padding: 16px 18px; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; letter-spacing: 0.1em; transition: transform 220ms var(--ease-out), box-shadow 220ms var(--ease-out), background 220ms var(--ease-out); }
         .submit-btn:hover { transform: translateY(-2px); background: var(--blue); box-shadow: 0 18px 50px rgba(15,23,42,0.16); }
         .field-error { color: #9a6a16; font-size: 0.92rem; margin-bottom: 2px; }
 

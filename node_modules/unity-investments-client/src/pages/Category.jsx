@@ -42,7 +42,7 @@ const Category = () => {
       <Contact />
 
       <style>{`
-        .category-page { background: #f9f7f4; color: var(--ink); }
+        .category-page { background: var(--cream); color: var(--ink); }
         .category-results { padding-top: 10px; padding-bottom: clamp(54px, 7vw, 88px); }
         .error { margin-bottom: 18px; padding: 14px 16px; border: 1px solid rgba(200,169,110,0.35); border-radius: 8px; background: rgba(255,255,255,0.78); color: var(--ink); }
 

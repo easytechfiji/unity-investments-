@@ -13,7 +13,7 @@ export default function SearchBar({ onSearch = () => {}, onSort = () => {} }) {
       </div>
 
       <style>{`
-        .search-wrap { padding: 34px 0 24px; background: #f9f7f4; }
+        .search-wrap { padding: 34px 0 24px; background: var(--cream); }
         .search-inner { display: flex; gap: 16px; align-items: center; }
         .search-input { flex: 1; width: 100%; min-height: 48px; padding: 12px 16px; border: 1px solid var(--border); border-radius: 8px; background: var(--white); color: var(--ink); }
         .sort-select { min-height: 48px; padding: 12px 14px; border: 1px solid var(--border); border-radius: 8px; background: var(--white); color: var(--ink); }
