@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import supabase from '../lib/supabase';
 
 export default function useCategories() {
   const [data, setData] = useState([]);
@@ -7,23 +8,41 @@ export default function useCategories() {
 
   useEffect(() => {
     let mounted = true;
-    const base = import.meta.env.VITE_API_URL || '';
     setLoading(true);
+    setError(null);
 
-    fetch(`${base}/api/categories`)
-      .then((r) => {
-        if (!r.ok) throw new Error('Network response was not ok');
-        return r.json();
-      })
-      .then((json) => {
+    async function loadCategories() {
+      if (!supabase) {
         if (!mounted) return;
-        setData(Array.isArray(json) ? json : []);
-      })
-      .catch((err) => {
+        setData([]);
+        setError(new Error('Supabase is not configured'));
+        setLoading(false);
+        return;
+      }
+
+      const { data: categories, error: categoriesError } = await supabase
+        .from('categories')
+        .select('id, slug, name, description, sort_order')
+        .order('sort_order', { ascending: true })
+        .order('name', { ascending: true });
+
+      if (!mounted) return;
+
+      if (categoriesError) {
+        setError(categoriesError);
+        setData([]);
+      } else {
+        setData(categories || []);
+      }
+
+      setLoading(false);
+    }
+
+    loadCategories().catch((err) => {
         if (!mounted) return;
         setError(err);
-      })
-      .finally(() => mounted && setLoading(false));
+        setLoading(false);
+      });
 
     return () => {
       mounted = false;
