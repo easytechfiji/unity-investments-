@@ -224,7 +224,10 @@ export default function CataloguePreview() {
                     type="button"
                     onClick={() => handleCategoryClick(category.slug)}
                     aria-label={`View ${category.name}`}
-                    style={{ '--card-index': String(index) }}
+                    style={{
+                      '--card-index': String(index),
+                      '--category-image': `url(/catalogue/${category.slug}.png)`,
+                    }}
                   >
                     <span className="category-card-index">
                       {String(index + 1).padStart(2, '0')}
@@ -284,21 +287,20 @@ export default function CataloguePreview() {
         .loading-skeletons { display: flex; gap: 18px; overflow: hidden; }
         .category-carousel { display: flex; min-width: 0; gap: 18px; overflow-x: auto; overscroll-behavior-x: contain; scroll-snap-type: x mandatory; scroll-behavior: smooth; scrollbar-width: none; touch-action: pan-x; -webkit-overflow-scrolling: touch; }
         .category-carousel::-webkit-scrollbar { display: none; }
-        .category-card { position: relative; isolation: isolate; flex: 0 0 calc((100% - 36px) / 3); min-width: 0; min-height: 330px; display: flex; flex-direction: column; justify-content: space-between; overflow: hidden; padding: 24px; border: 1px solid var(--border); border-radius: 8px; background: linear-gradient(145deg, #ffffff, #f6fbff); color: inherit; text-align: left; cursor: pointer; scroll-snap-align: start; transform: translateZ(0); animation: cardRise 560ms var(--ease-out) both; animation-delay: calc(var(--card-index, 0) * 70ms); box-shadow: 0 18px 48px rgba(20,93,168,0.08); transition: transform 320ms var(--ease-out), border-color 320ms var(--ease-out), box-shadow 320ms var(--ease-out), background 320ms var(--ease-out); }
-        .category-card::before { content: ''; position: absolute; inset: 0; z-index: -2; background: linear-gradient(135deg, rgba(200,169,110,0.16), transparent 48%, rgba(59,130,246,0.08)); opacity: 0; transition: opacity 320ms var(--ease-out); }
-        .category-card::after { content: ''; position: absolute; inset: auto -20% -45% 20%; z-index: -1; height: 190px; background: radial-gradient(circle, rgba(200,169,110,0.16), transparent 68%); transform: translateY(28px); opacity: 0.6; transition: transform 420ms var(--ease-out), opacity 420ms var(--ease-out); }
-        .category-card:hover { transform: translateY(-8px); border-color: rgba(200,169,110,0.56); background: var(--white); box-shadow: 0 26px 70px rgba(15,23,42,0.14); }
-        .category-card:hover::before { opacity: 1; }
-        .category-card:hover::after { transform: translateY(0); opacity: 1; }
+        .category-card { position: relative; isolation: isolate; flex: 0 0 calc((100% - 36px) / 3); min-width: 0; min-height: 330px; display: flex; flex-direction: column; justify-content: space-between; overflow: hidden; padding: 24px; border: 1px solid rgba(255,255,255,0.22); border-radius: 8px; background: #141414; color: var(--white); text-align: left; cursor: pointer; scroll-snap-align: start; transform: translateZ(0); animation: cardRise 560ms var(--ease-out) both; animation-delay: calc(var(--card-index, 0) * 70ms); box-shadow: 0 22px 58px rgba(15,23,42,0.18); transition: transform 320ms var(--ease-out), border-color 320ms var(--ease-out), box-shadow 320ms var(--ease-out); }
+        .category-card::before { content: ''; position: absolute; inset: 0; z-index: -2; background-image: var(--category-image), linear-gradient(145deg, #ffffff, #f6fbff); background-size: cover; background-position: center; transform: scale(1.02); transition: transform 520ms var(--ease-out), filter 520ms var(--ease-out); }
+        .category-card::after { content: ''; position: absolute; inset: 0; z-index: -1; background: linear-gradient(180deg, rgba(4,11,21,0.16) 0%, rgba(4,11,21,0.36) 42%, rgba(4,11,21,0.86) 100%), linear-gradient(90deg, rgba(4,11,21,0.62), rgba(4,11,21,0.04) 58%); transition: opacity 420ms var(--ease-out); }
+        .category-card:hover { transform: translateY(-8px); border-color: rgba(255,255,255,0.48); box-shadow: 0 30px 78px rgba(15,23,42,0.24); }
+        .category-card:hover::before { transform: scale(1.08); filter: saturate(1.08) contrast(1.04); }
+        .category-card:hover::after { opacity: 0.92; }
         .category-card:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; }
-        .category-card-index { color: rgba(17,17,17,0.34); font-size: 0.78rem; font-weight: 800; letter-spacing: 0.16em; }
-        .category-card-mark { position: absolute; top: 18px; right: 20px; color: rgba(30,58,138,0.06); font-family: var(--font-display); font-size: clamp(5.2rem, 9vw, 7.8rem); font-weight: 800; line-height: 0.8; transition: transform 420ms var(--ease-out), color 420ms var(--ease-out); }
-        .category-card:hover .category-card-mark { color: rgba(200,169,110,0.16); transform: translate3d(-8px, 8px, 0) scale(1.04); }
+        .category-card-index { color: rgba(255,255,255,0.76); font-size: 0.78rem; font-weight: 800; letter-spacing: 0.16em; text-shadow: 0 1px 18px rgba(0,0,0,0.34); }
+        .category-card-mark { display: none; }
         .category-card-copy { display: block; margin-top: auto; padding-top: 92px; }
-        .category-card strong { display: block; margin-bottom: 12px; color: var(--ink); font-family: var(--font-display); font-size: clamp(1.65rem, 2.7vw, 2.25rem); font-weight: 700; line-height: 1; }
-        .category-card small { display: block; min-height: 76px; color: var(--ink-soft); font-size: 0.95rem; line-height: 1.55; }
-        .category-card-action { width: max-content; margin-top: 24px; padding-top: 13px; border-top: 1px solid rgba(255,166,38,0.42); color: var(--accent-strong); font-size: 0.74rem; font-weight: 800; letter-spacing: 0.16em; text-transform: uppercase; transition: transform 260ms var(--ease-out), color 260ms var(--ease-out); }
-        .category-card:hover .category-card-action { color: var(--blue); transform: translateX(6px); }
+        .category-card strong { display: block; margin-bottom: 12px; color: var(--white); font-family: var(--font-display); font-size: clamp(1.65rem, 2.7vw, 2.25rem); font-weight: 700; line-height: 1; text-shadow: 0 3px 20px rgba(0,0,0,0.36); }
+        .category-card small { display: block; min-height: 76px; color: rgba(255,255,255,0.84); font-size: 0.95rem; line-height: 1.55; text-shadow: 0 2px 16px rgba(0,0,0,0.34); }
+        .category-card-action { width: max-content; margin-top: 24px; padding-top: 13px; border-top: 1px solid rgba(255,255,255,0.42); color: #ffffff; font-size: 0.74rem; font-weight: 800; letter-spacing: 0.16em; text-transform: uppercase; text-shadow: 0 2px 14px rgba(0,0,0,0.34); transition: transform 260ms var(--ease-out), color 260ms var(--ease-out); }
+        .category-card:hover .category-card-action { color: var(--accent-light); transform: translateX(6px); }
         .category-dots { display: flex; justify-content: center; gap: 9px; }
         .category-dots button { width: 24px; height: 6px; border: 0; border-radius: 999px; background: rgba(17,17,17,0.16); cursor: pointer; transition: width 260ms var(--ease-out), background 260ms var(--ease-out), transform 260ms var(--ease-out); }
         .category-dots button.active { width: 42px; background: var(--accent); }
