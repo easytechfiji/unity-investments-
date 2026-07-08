@@ -3,6 +3,16 @@ import supabase from '../lib/supabase';
 
 const storageBucket = import.meta.env.VITE_SUPABASE_STORAGE_BUCKET || 'item-images';
 
+// PostgREST .or() filters are comma/paren delimited and ilike patterns treat
+// % _ \ as wildcards, so strip/escape them to keep user input a literal match.
+function sanitizeSearch(value) {
+  return String(value)
+    .replace(/[,()]/g, ' ')
+    .replace(/[\\%_]/g, '\\$&')
+    .trim()
+    .slice(0, 100);
+}
+
 function toPublicImageUrl(imagePath) {
   if (!imagePath || !supabase) return null;
 
@@ -78,8 +88,9 @@ export default function useItems({ category, page = 1, limit = 12, search = '' }
         query = query.eq('categories.slug', category);
       }
 
-      if (search) {
-        query = query.or(`name.ilike.%${search}%,description.ilike.%${search}%`);
+      const safeSearch = sanitizeSearch(search);
+      if (safeSearch) {
+        query = query.or(`name.ilike.%${safeSearch}%,description.ilike.%${safeSearch}%`);
       }
 
       const { data: items, count, error: itemsError } = await query;

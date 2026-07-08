@@ -5,6 +5,16 @@ const router = express.Router()
 
 const storageBucket = process.env.SUPABASE_STORAGE_BUCKET || 'item-images'
 
+// PostgREST .or() filters are comma/paren delimited and ilike patterns treat
+// % _ \ as wildcards, so strip/escape them to keep user input a literal match.
+function sanitizeSearch(value) {
+  return value
+    .replace(/[,()]/g, ' ')
+    .replace(/[\\%_]/g, '\\$&')
+    .trim()
+    .slice(0, 100)
+}
+
 function toPublicImageUrl(imagePath) {
   if (!imagePath || !supabase) return null
 
@@ -40,7 +50,7 @@ router.get('/', async (req, res) => {
   const from = (page - 1) * limit
   const to = from + limit - 1
   const category = String(req.query.category || '').trim()
-  const search = String(req.query.search || '').trim()
+  const search = sanitizeSearch(String(req.query.search || ''))
 
   let query = supabase
     .from('items')

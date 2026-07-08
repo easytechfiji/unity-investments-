@@ -85,7 +85,7 @@ const Contact = () => {
 
             <div className="info-block reveal">
               <strong>Location</strong>
-              <div>Auckland, NZ</div>
+              <div>Kings Rd, Nakasi, Suva, Fiji</div>
             </div>
           </div>
         </div>

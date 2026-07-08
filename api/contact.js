@@ -1,10 +1,37 @@
-import express from 'express'
-
-const router = express.Router()
+// Vercel serverless function: POST /api/contact
+// Runs on the same domain as the site, so no CORS setup is needed.
 
 const emailPattern = /^\S+@\S+\.\S+$/
 
-router.post('/', async (req, res) => {
+// Basic per-IP rate limit. Serverless instances are short-lived, so this is
+// best-effort per warm instance — enough to stop casual form spam.
+const WINDOW_MS = 60 * 60 * 1000
+const MAX_PER_WINDOW = 5
+const hits = new Map()
+
+function isRateLimited(ip) {
+  const now = Date.now()
+  const recent = (hits.get(ip) || []).filter((time) => now - time < WINDOW_MS)
+  if (recent.length >= MAX_PER_WINDOW) {
+    hits.set(ip, recent)
+    return true
+  }
+  recent.push(now)
+  hits.set(ip, recent)
+  return false
+}
+
+export default async function handler(req, res) {
+  if (req.method !== 'POST') {
+    res.setHeader('Allow', 'POST')
+    return res.status(405).json({ error: 'Method not allowed' })
+  }
+
+  const ip = String(req.headers['x-forwarded-for'] || '').split(',')[0].trim() || 'unknown'
+  if (isRateLimited(ip)) {
+    return res.status(429).json({ error: 'Too many messages sent. Please try again later.' })
+  }
+
   const name = String(req.body?.name || '').trim()
   const email = String(req.body?.email || '').trim()
   const message = String(req.body?.message || '').trim()
@@ -64,6 +91,4 @@ router.post('/', async (req, res) => {
     console.error('Contact email failed:', error)
     return res.status(502).json({ error: 'Unable to send message right now.' })
   }
-})
-
-export default router
+}

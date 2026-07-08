@@ -19,7 +19,6 @@ VAULT is a product display site. The frontend is React with Framer Motion animat
 | Backend | Node.js + Express |
 | Database | Supabase (PostgreSQL) |
 | File storage | Supabase Storage |
-| Auth | Supabase Auth + JWT |
 | Hosting | Vercel |
 | CI/CD | GitHub Actions |
 | Editor | VS Code |
@@ -72,16 +71,10 @@ VAULT is a product display site. The frontend is React with Framer Motion animat
 │   ├── routes/
 │   │   ├── items.js
 │   │   ├── categories.js
-│   │   ├── auth.js
-│   │   └── admin.js
-│   ├── middleware/
-│   │   ├── auth.js
-│   │   ├── validate.js
-│   │   ├── rateLimit.js
-│   │   └── security.js
+│   │   └── contact.js                   # Contact form → Resend email
 │   └── lib/
-│       ├── supabase.js
-│       └── supabaseAdmin.js             # Service-role client — server only
+│       ├── env.js
+│       └── supabase.js                  # Anon client — reads only
 │
 ├── tests/
 │   ├── unit/
@@ -117,11 +110,9 @@ VAULT is a product display site. The frontend is React with Framer Motion animat
 | `GET` | `/api/items` | None | All published items — supports `?category=` `?page=` `?limit=` |
 | `GET` | `/api/items/:id` | None | Single item |
 | `GET` | `/api/categories` | None | All categories |
-| `POST` | `/api/auth/login` | None | Login, returns JWT |
-| `POST` | `/api/auth/logout` | JWT | End session |
-| `POST` | `/api/admin/items` | JWT | Create item |
-| `PUT` | `/api/admin/items/:id` | JWT | Update item |
-| `DELETE` | `/api/admin/items/:id` | JWT | Delete item |
+| `POST` | `/api/contact` | None (rate limited) | Send a contact form message via Resend |
+
+There is no admin API — content is created and edited directly in the Supabase dashboard, and Supabase Row Level Security blocks public writes.
 
 ---
 
@@ -150,9 +141,6 @@ SUPABASE_ANON_KEY=your-anon-key
 SUPABASE_SERVICE_ROLE_KEY=your-service-role-key
 SUPABASE_STORAGE_BUCKET=item-images
 
-# Auth
-JWT_SECRET=your-long-random-secret
-
 # App
 NODE_ENV=development
 PORT=4000
@@ -167,7 +155,7 @@ RESEND_FROM_EMAIL="Unity Investment <onboarding@resend.dev>"
 CONTACT_EMAIL_TO=you@example.com
 ```
 
-> `SUPABASE_SERVICE_ROLE_KEY` and `JWT_SECRET` are server-side only. Never prefix them with `VITE_` — Vite would expose them to the browser.
+> `SUPABASE_SERVICE_ROLE_KEY` and `RESEND_API_KEY` are server-side only. Never prefix them with `VITE_` — Vite would expose them to the browser.
 
 ### 3. Run locally
 
@@ -180,57 +168,14 @@ npm run dev
 
 ## Supabase setup
 
-Run this in the **Supabase SQL editor**:
+One step: open the **Supabase SQL Editor**, paste the entire contents of
+[`supabase/setup.sql`](supabase/setup.sql), and hit **Run**. It creates the
+tables, indexes, Row Level Security policies, the public `item-images`
+storage bucket, and seeds the six categories. It's safe to re-run.
 
-```sql
--- Categories
-create table categories (
-  id uuid primary key default gen_random_uuid(),
-  name text not null,
-  slug text unique not null,
-  description text,
-  sort_order integer default 0,
-  cover_image_url text,
-  created_at timestamptz default now()
-);
-
--- Items
-create table items (
-  id uuid primary key default gen_random_uuid(),
-  name text not null,
-  description text,
-  category_id uuid references categories(id),
-  price numeric(10, 2),
-  image_path text,
-  image_url text,
-  tags text[],
-  is_active boolean default true,
-  created_at timestamptz default now(),
-  updated_at timestamptz default now()
-);
-
--- If your tables already exist, run this instead of recreating them:
-alter table categories add column if not exists sort_order integer default 0;
-alter table items add column if not exists price numeric(10, 2);
-alter table items add column if not exists image_path text;
-alter table items add column if not exists image_url text;
-alter table items add column if not exists tags text[] default '{}';
-alter table items add column if not exists is_active boolean default true;
-
--- Row Level Security
-alter table items enable row level security;
-alter table categories enable row level security;
-
-create policy "Public read published items"
-  on items for select using (is_active = true);
-
-create policy "Public read categories"
-  on categories for select using (true);
-```
-
-**Storage bucket:**
-1. Supabase → Storage → New bucket → name it `item-images` → set to public
-2. Upload product images here, copy the path inside the bucket, and paste it into the `image_path` field on the item row. Example: `vehicles/car-1.jpg`
+Then upload product images in **Storage → item-images**, copy the path inside
+the bucket, and paste it into the `image_path` field on the item row.
+Example: `vehicles/car-1.jpg`
 
 ---
 
@@ -260,15 +205,15 @@ Insert a row into `categories` with a `name` and `slug` (e.g. `watches`). The ho
 
 | Measure | Detail |
 |---|---|
-| HTTPS | Enforced by Vercel, HSTS via Helmet |
-| JWT | Verified server-side on every admin request |
-| Input validation | Zod schemas reject bad data before it hits the DB |
-| SQL injection | Impossible — Supabase JS client uses parameterised queries |
-| XSS | Content Security Policy header via Helmet |
-| Rate limiting | 100 req / min / IP |
+| HTTPS | Enforced by Vercel; HSTS set by Helmet (API) and `vercel.json` (static site) |
+| Security headers | Helmet on the API; `X-Frame-Options`, `X-Content-Type-Options`, `Referrer-Policy`, `Permissions-Policy` on the static site via `vercel.json` |
+| Rate limiting | 300 req / 15 min / IP on `/api`, 5 / hour on `/api/contact` |
+| CORS | Locked to `CORS_ORIGIN` in production — no wildcard fallback |
+| Body size | JSON payloads capped at 32 kB |
+| Input validation | Contact form fields are required, length-capped and email-checked server-side |
+| Query injection | Search input is sanitised before being interpolated into Supabase filters |
 | RLS | Supabase Row Level Security — public users cannot write |
-| Secrets | In Vercel + GitHub env vars only, never in source code |
-| Service key | Only in `server/lib/supabaseAdmin.js`, never in `client/` |
+| Secrets | In Vercel + GitHub env vars only, never in source code (`.env` is gitignored) |
 
 ---
 
@@ -309,11 +254,13 @@ push / PR
 
 ## Deployment
 
-1. Import the GitHub repo into Vercel
-2. Add all env vars to **Vercel → Settings → Environment Variables**
-3. Vercel runs the build and deploys — `vercel.json` routes `/api/*` to the Express server and everything else to the React build
+1. Import the GitHub repo into Vercel (keep the project root as the repo root)
+2. Add env vars to **Vercel → Settings → Environment Variables**: `VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY`, `VITE_SUPABASE_STORAGE_BUCKET`, `RESEND_API_KEY`, `RESEND_FROM_EMAIL`, `CONTACT_EMAIL_TO`
+3. Vercel builds the React app and serves the contact form from the serverless function in `api/contact.js` — same domain, so no CORS or `VITE_API_URL` needed in production
 
 Push to `main` → auto-deploy. That's it.
+
+> The Express app in `server/` is only used for local development (`npm run dev`). It is not deployed.
 
 ---
 
@@ -325,7 +272,6 @@ Push to `main` → auto-deploy. That's it.
 | `SUPABASE_ANON_KEY` | Server | ✅ |
 | `SUPABASE_SERVICE_ROLE_KEY` | Server only | ❌ Never |
 | `SUPABASE_STORAGE_BUCKET` | Server | ✅ |
-| `JWT_SECRET` | Server only | ❌ Never |
 | `RESEND_API_KEY` | Server only | ❌ Never |
 | `RESEND_FROM_EMAIL` | Server only | ✅ |
 | `CONTACT_EMAIL_TO` | Server only | ✅ |
