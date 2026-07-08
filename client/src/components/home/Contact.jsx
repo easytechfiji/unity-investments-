@@ -46,7 +46,10 @@ const Contact = () => {
     setErrors({});
 
     try {
-      const base = import.meta.env.VITE_API_URL || '';
+      // In production the contact form is a same-origin serverless function,
+      // so always post to /api/contact. VITE_API_URL only applies in local dev
+      // where the Express server runs on a different port.
+      const base = import.meta.env.DEV ? (import.meta.env.VITE_API_URL || '') : '';
       const response = await fetch(`${base}/api/contact`, {
         method: 'POST',
         headers: {
