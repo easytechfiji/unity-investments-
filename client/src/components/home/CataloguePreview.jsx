@@ -10,9 +10,9 @@ export const catalogueCategorySeed = [
     sort_order: 1,
   },
   {
-    slug: 'phones-tablets',
-    name: 'Phones & Tablets',
-    description: 'Mobile phones, tablets and everyday smart devices.',
+    slug: 'blankets-bedding',
+    name: 'Blankets & Bedding',
+    description: 'Blankets, bedding and soft home essentials.',
     sort_order: 2,
   },
   {
@@ -28,9 +28,9 @@ export const catalogueCategorySeed = [
     sort_order: 4,
   },
   {
-    slug: 'blankets-bedding',
-    name: 'Blankets & Bedding',
-    description: 'Blankets, bedding and soft home essentials.',
+    slug: 'phones-tablets',
+    name: 'Phones & Tablets',
+    description: 'Mobile phones, tablets and everyday smart devices.',
     sort_order: 5,
   },
   {

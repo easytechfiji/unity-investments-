@@ -118,10 +118,10 @@ create policy "Public read item images"
 
 insert into categories (name, slug, description, sort_order) values
   ('Vehicles', 'vehicles', 'Cars, vans and transport options sourced from different retailers.', 1),
-  ('Phones & Tablets', 'phones-tablets', 'Mobile phones, tablets and everyday smart devices.', 2),
+  ('Blankets & Bedding', 'blankets-bedding', 'Blankets, bedding and soft home essentials.', 2),
   ('Electronics', 'electronics', 'Useful tech, entertainment devices and electronic accessories.', 3),
   ('Home Goods', 'home-goods', 'Practical household products for daily living and comfort.', 4),
-  ('Blankets & Bedding', 'blankets-bedding', 'Blankets, bedding and soft home essentials.', 5),
+  ('Phones & Tablets', 'phones-tablets', 'Mobile phones, tablets and everyday smart devices.', 5),
   ('Daily Essentials', 'daily-essentials', 'Everyday products that customers need often and can browse quickly.', 6)
 on conflict (slug) do nothing;
 
