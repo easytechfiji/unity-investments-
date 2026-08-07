@@ -32,6 +32,7 @@ create table if not exists items (
   image_url text,
   tags text[] default '{}',
   is_active boolean default true,
+  is_upcoming boolean not null default false,
   created_at timestamptz default now(),
   updated_at timestamptz default now()
 );
@@ -45,6 +46,7 @@ alter table items add column if not exists image_path text;
 alter table items add column if not exists image_url text;
 alter table items add column if not exists tags text[] default '{}';
 alter table items add column if not exists is_active boolean default true;
+alter table items add column if not exists is_upcoming boolean not null default false;
 alter table items add column if not exists updated_at timestamptz default now();
 
 -- Keep updated_at fresh automatically whenever you edit an item.
@@ -64,6 +66,8 @@ create trigger items_set_updated_at
 -- Indexes so browsing and search stay fast as the catalogue grows.
 create index if not exists items_category_id_idx on items (category_id);
 create index if not exists items_is_active_created_idx on items (is_active, created_at desc);
+-- Partial index: only the handful of rows flagged "Upcoming" get indexed.
+create index if not exists items_is_upcoming_idx on items (is_upcoming) where is_upcoming;
 
 
 -- ------------------------------------------------------------
