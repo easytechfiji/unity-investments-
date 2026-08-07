@@ -34,6 +34,7 @@ function mapItem(row) {
     categorySlug: category.slug,
     price: row.price,
     tags: row.tags || [],
+    isUpcoming: row.is_upcoming === true,
     createdAt: row.created_at,
   };
 }
@@ -72,6 +73,7 @@ export default function useItems({ category, page = 1, limit = 12, search = '' }
           image_path,
           price,
           tags,
+          is_upcoming,
           category_id,
           created_at,
           categories!inner (
