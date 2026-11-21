@@ -1,0 +1,6 @@
+# Report a security problem with this website.
+# Update the contact address and expiry date before launch.
+Contact: mailto:security@unityfj.com
+Expires: 2027-10-13T00:00:00.000Z
+Preferred-Languages: en
+Canonical: https://unityfj.com/.well-known/security.txt

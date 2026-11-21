@@ -1,20 +1,61 @@
 {
-  "name": "vault",
-  "version": "1.0.0",
+  "name": "unity-investment",
   "private": true,
+  "type": "module",
   "workspaces": [
-    "client",
-    "server"
+    "packages/*",
+    "apps/*"
   ],
+  "engines": {
+    "node": ">=22.12.0"
+  },
   "scripts": {
-    "dev": "concurrently \"cd client && npm run dev\" \"cd server && npm run dev\"",
-    "build": "npm --workspace client run build && npm --workspace server run build",
-    "test": "npm run test:unit && npm run test:integration && npm run test:e2e",
-    "test:unit": "vitest run --cache=false tests/unit",
-    "test:integration": "vitest run --cache=false tests/integration",
-    "test:e2e": "playwright test tests/e2e"
+    "prepare": "node scripts/git-hooks.mjs",
+    "dev": "node scripts/dev.mjs",
+    "build:shared": "npm run build -w @od/shared",
+    "build": "npm run build:shared && npm run build -w @od/api -w @od/web -w @od/admin",
+    "typecheck": "npm run build:shared && npm run typecheck --workspaces --if-present && tsc -p supabase/tsconfig.json",
+    "lint": "eslint . --max-warnings 0",
+    "format": "prettier . --write",
+    "format:check": "prettier . --check",
+    "test": "npm run build:shared && vitest run",
+    "test:unit": "npm run build:shared && vitest run --project unit",
+    "test:integration": "npm run build:shared && vitest run --project integration",
+    "test:e2e": "npm run build:shared && npm run test:e2e -w @od/web",
+    "check:text": "node scripts/check-text.mjs",
+    "db:start": "node scripts/db/local.mjs start",
+    "db:stop": "node scripts/db/local.mjs stop",
+    "db:migrate": "node scripts/db/migrate.mjs --local",
+    "db:reset": "node scripts/db/migrate.mjs --local --fresh && node scripts/db/samples.mjs load --local",
+    "db:samples": "node scripts/db/samples.mjs load --local",
+    "db:remove-samples": "node scripts/db/samples.mjs remove --local",
+    "db:push": "node --env-file-if-exists=.env scripts/db/migrate.mjs",
+    "admin:create": "npm run admin:create -w @od/api --",
+    "import:vault": "npm run import:vault -w @od/api --",
+    "storage:buckets": "npm run storage:buckets -w @od/api --",
+    "screenshots": "node scripts/screenshots.mjs",
+    "brand:assets": "node scripts/brand/make-assets.mjs",
+    "db:backup": "node --env-file-if-exists=.env scripts/db/backup.mjs dump",
+    "db:restore-test": "node scripts/db/backup.mjs restore-test"
   },
   "devDependencies": {
-    "concurrently": "^8.0.0"
+    "@electric-sql/pglite": "^0.5.9",
+    "@eslint/js": "^10.0.1",
+    "@next/eslint-plugin-next": "^16.4.6",
+    "@types/node": "^22.20.5",
+    "@types/pg": "^8.23.1",
+    "eslint": "^10.12.0",
+    "eslint-plugin-react-hooks": "^7.1.1",
+    "globals": "^17.13.0",
+    "pg": "^8.23.1",
+    "prettier": "^3.9.10",
+    "typescript": "~6.0.3",
+    "typescript-eslint": "^8.71.1",
+    "vitest": "^5.0.4"
+  },
+  "overrides": {
+    "exceljs": {
+      "uuid": "^11.1.1"
+    }
   }
 }
