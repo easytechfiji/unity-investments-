@@ -1,0 +1,12 @@
+node_modules
+dist
+.next
+.next-e2e
+dist-e2e
+coverage
+legacy
+package-lock.json
+next-env.d.ts
+test-results
+playwright-report
+CLAUDE.md

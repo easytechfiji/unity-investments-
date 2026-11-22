@@ -1,22 +1,47 @@
-# Dependencies
+# Dependencies and build output
 node_modules/
+dist/
+build/
+.next/
+out/
+coverage/
+*.tsbuildinfo
+next-env.d.ts
+# Written by `next dev` on every start
+apps/web/AGENTS.md
 
-# Local environment files
+# Environment files. Only .env.example (with empty values) is committed.
 .env
 .env.*
 !.env.example
-!*.env.example
+*.env
 
-# Build output
-dist/
-client/dist/
-server/dist/
+# Old site reference copy. Kept out of git until its contents are checked.
+legacy/
 
-# Logs
-*.log
-*.err.log
+# Product source files and images. Images go to Supabase Storage, not git.
+scripts/migrate/input/
+scripts/migrate/output/
 
-# Tool caches
-.vitest-cache/
+# Test output
 test-results/
-.edge-profile/
+playwright-report/
+playwright/.cache/
+
+# Logs and OS files
+*.log
+npm-debug.log*
+.DS_Store
+Thumbs.db
+
+# Editor
+.vscode/*
+!.vscode/extensions.json
+.idea/
+
+# Local database, media and outbox for development
+.data/
+
+# Browser test builds
+.next-e2e/
+dist-e2e/
