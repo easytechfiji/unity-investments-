@@ -12,14 +12,14 @@ branch. Nothing is committed or pushed. Nothing is deployed, because that needs 
 ## Documents
 
 - `docs/SECURITY-REVIEW.md`: every security item with status and evidence (written for the original shop; the code is the same).
-- `docs/DEPLOYMENT.md`: setting up Supabase, the API host, Vercel and Cloudflare.
+- `docs/DEPLOYMENT.md`: setting up Supabase, Vercel (API, storefront, admin) and Cloudflare.
 - `docs/CUTOVER.md`: moving unityfj.com from the old VAULT site without breaking email.
 - `docs/OLD-URLS.md`: the old VAULT addresses and their redirects.
 - `docs/LEARNING-LOG.md`: what was built and why.
 
 ## Still needs Sultan
 
-- Keys in the `.env` files (see `ECOMMERCE-SETUP.md` step 2): Supabase, PayPal (and which currency it charges), Resend, Turnstile, an API host.
+- Keys in the `.env` files (see `ECOMMERCE-SETUP.md` step 2): Supabase, PayPal (and which currency it charges), Resend, Turnstile.
 - A Supabase project for the shop, then `npm run db:push`, the first admin account and the storage buckets.
 - Real products entered through the admin, real delivery prices, bank details.
 - Decisions: shop email address and domain, VAT, opening hours.

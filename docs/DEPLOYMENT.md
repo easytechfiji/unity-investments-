@@ -4,12 +4,12 @@ How to put the shop on staging and then production. Staging and production are t
 
 Planned addresses (change them here and in the settings if different):
 
-| Part                     | Address                                   | Host                                    |
-| ------------------------ | ----------------------------------------- | --------------------------------------- |
-| Storefront               | https://unityfj.com (www redirects to it) | Vercel, project root `apps/web`         |
-| Admin                    | https://admin.unityfj.com                 | Vercel, project root `apps/admin`       |
-| API                      | https://api.unityfj.com                   | A small Node 22 host of Sultan's choice |
-| Database, logins, images | Supabase project                          | Supabase                                |
+| Part                     | Address                                   | Host                              |
+| ------------------------ | ----------------------------------------- | --------------------------------- |
+| Storefront               | https://unityfj.com (www redirects to it) | Vercel, project root `apps/web`   |
+| Admin                    | https://admin.unityfj.com                 | Vercel, project root `apps/admin` |
+| API                      | https://api.unityfj.com                   | Vercel, project root `apps/api`   |
+| Database, logins, images | Supabase project                          | Supabase                          |
 
 Staging uses the same pattern under a staging name, for example `staging.unityfj.com`, and is behind a login (Vercel deployment protection or Cloudflare Access).
 
@@ -26,16 +26,24 @@ Staging uses the same pattern under a staging name, for example `staging.unityfj
 9. Create the owner's admin account with `npm run admin:create -- --email <owner email> --name "<owner name>" --role owner`, using the API settings for this project (see section 3). The person sets up their authenticator app on first sign in.
 10. Staging only: `node scripts/db/samples.mjs load --url "$SUPABASE_DB_URL" --i-understand-this-is-not-production` if you want the sample catalogue there. Never on production.
 
-## 2. API host
+## 2. API (Vercel, root `apps/api`)
 
-Any host that runs Node 22 works (for example Render, Railway or Fly.io). Commands:
+The API runs on Vercel as a function, so there is no separate server to rent. `apps/api/vercel.json` sets the install and build commands and sends every request to `apps/api/api/index.js`, which builds the Express app once per running copy (`src/bootstrap.ts`, the same start up code `npm start` uses).
 
-- Build: `npm ci && npm run build:shared && npm run build -w @od/api`
-- Start: `npm run start -w @od/api`
-- Health check path: `/health` (checks the database too)
-- One process is enough for this shop. If you run more than one, rate limits are per process; add Cloudflare rate limiting rules.
+- Import the repository as a new Vercel project. Root Directory `apps/api`, Framework Preset "Other", leave the Build, Output and Install fields empty (no overrides), Node.js 22.
+- Add the domain `api.unityfj.com`.
+- Health check: `https://api.unityfj.com/health` returns `{"status":"ok"}` (it checks the database too).
+- `DATABASE_URL`: use the Supabase **transaction pooler** string (Connect, Transaction pooler, port 6543), not the session pooler. Vercel can run several copies of the API at once and each opens its own connections (at most 3, set in `api/index.js`); the transaction pooler shares them so the database does not run out.
+- `TRUST_PROXY`: `1` (Vercel's proxy).
 
-Settings (in the host's secret store, never in git). See `apps/api/.env.example` for the full list:
+Limits that come with Vercel:
+
+- **Requests are limited to 4.5 MB.** Product photos up to 4.5 MB upload as normal; larger ones are refused, so resize them first. Videos are usually larger, so the admin cannot upload most videos while the API is on Vercel.
+- **Rate limits are kept per running copy**, so they are weaker than on one long running server. Add a Cloudflare rate limiting rule for `api.unityfj.com/v1/` once the domain is on Cloudflare.
+- **Admin sign in needs the real domains.** The admin session cookie is `SameSite=Strict`, which only works when the admin and the API share a site (`admin.unityfj.com` and `api.unityfj.com`). Two different `*.vercel.app` addresses count as different sites, so the admin cannot sign in there. The storefront works on `*.vercel.app` addresses for testing.
+- Invoice PDFs read font files from `pdfkit`; `vercel.json` includes them in the function. Check an invoice download after the first deploy.
+
+Settings (in the Vercel project's Environment Variables, never in git). See `apps/api/.env.example` for the full list:
 
 | Setting                                                                                          | Production value                                                                                   |
 | ------------------------------------------------------------------------------------------------ | -------------------------------------------------------------------------------------------------- |
@@ -44,7 +52,7 @@ Settings (in the host's secret store, never in git). See `apps/api/.env.example`
 | `ADMIN_ORIGIN`                                                                                   | `https://admin.unityfj.com`                                                                        |
 | `SITE_URL`                                                                                       | `https://unityfj.com`                                                                              |
 | `API_PUBLIC_URL`                                                                                 | `https://api.unityfj.com`                                                                          |
-| `TRUST_PROXY`                                                                                    | `2` behind Cloudflare and the host's load balancer (check the host's documentation)                |
+| `TRUST_PROXY`                                                                                    | `1` on Vercel (see above)                                                                          |
 | `COOKIE_SECURE`                                                                                  | `true`                                                                                             |
 | `DATABASE_URL`                                                                                   | Supabase session pooler string                                                                     |
 | `SUPABASE_URL`, `SUPABASE_PUBLISHABLE_KEY`, `SUPABASE_SECRET_KEY`                                | From Supabase                                                                                      |
@@ -68,9 +76,9 @@ npm run admin:create -- --email owner@example.com --name "Owner name" --role own
 
 It prints a password once. Give it to the person in person or by phone, not by email. Afterwards put your local `.env` back to the development values.
 
-## Vercel: two projects, not one multi-service project
+## Vercel: three projects, not one multi-service project
 
-Vercel may offer to "import a multi-service project" and suggest a root `vercel.json` that serves the admin at `/admin` and the API at `/api` on one domain. Do not use it. The admin must stay on its own subdomain (a storefront bug cannot then reach the admin session), the API routes start with `/v1`, and the API keeps its rate limits in memory, so it must run as one long lived Node process, not as serverless functions. Import the repository twice instead, once per root folder below. There is no root `vercel.json` on purpose.
+Vercel may offer to "import a multi-service project" and suggest a root `vercel.json` that serves the admin at `/admin` and the API at `/api` on one domain. Do not use it. The admin must stay on its own subdomain (a storefront bug cannot then reach the admin session), and the API routes start with `/v1`. Import the repository three times instead, once per root folder: `apps/api` (section 2), `apps/web` and `apps/admin` (below). There is no root `vercel.json` on purpose.
 
 ## 4. Storefront (Vercel, root `apps/web`)
 
