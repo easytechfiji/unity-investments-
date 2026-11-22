@@ -3,7 +3,7 @@
   "framework": null,
   "regions": ["syd1"],
   "installCommand": "cd ../.. && npm ci --include=dev",
-  "buildCommand": "cd ../.. && npm run build:shared && npm run build -w @od/api",
+  "buildCommand": "cd ../.. && npm run build:shared && npm run build -w @od/api && npm run bundle -w @od/api",
   "outputDirectory": "public",
   "functions": {
     "api/index.js": {

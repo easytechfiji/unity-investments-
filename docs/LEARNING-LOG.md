@@ -254,3 +254,40 @@ The working shop code was copied in from Sultan's earlier office supplies shop a
 - Deploy the three Vercel projects and set the environment variables (docs/DEPLOYMENT.md).
 - Check an invoice PDF downloads on Vercel (the font files are listed in `vercel.json`).
 - Owner admin account on the new Supabase project.
+
+## Getting the API to start on Vercel (22 November 2026)
+
+### What happened
+
+- The first deploys crashed with `FUNCTION_INVOCATION_FAILED` and no detail. The entry file was
+  changed to load the app inside a `try`, so a failed start answers with a short, safe reason.
+  That showed the real error: `ERR_REQUIRE_ESM`, from `sanitize-html` loading `htmlparser2`.
+- Two fixes did not work: pinning Node 24 (Vercel still refused), and an npm override to an older
+  `htmlparser2` (npm would not apply it). Both were checked and the override was undone.
+- The fix that worked: esbuild bundles the API into one file at build time
+  (`apps/api/scripts/bundle.mjs`), so that `require` no longer exists. `sharp` and `pdfkit`
+  stay outside the bundle because they load files from their own folders.
+- Tested the way Vercel runs it, with `node --no-experimental-require-module`: the unbundled API
+  fails with the same error, the bundle starts, lists products, converts an image and makes a PDF.
+
+### Key ideas
+
+- **Make the failure tell you its cause.** A crash before your code runs gives no detail.
+  Moving the risky step inside a `try` turned a blind guess into a one line answer.
+- **CommonJS and ES modules.** Older packages use `require`, newer ones `import`. A `require` of
+  an ES module only works when Node's require(esm) support is on; a bundler removes the question
+  by joining everything into one module.
+- **Reproduce the platform locally.** Switching the same Node feature off on the laptop gave the
+  exact Vercel error, so the fix could be proven before pushing.
+
+### Questions a tutor might ask
+
+1. **Why not just replace sanitize-html?** It protects the site from harmful HTML in product
+   text. Swapping a security library to fix a packaging problem would trade a known, tested
+   guard for an unknown one.
+2. **Why are sharp and pdfkit not bundled?** sharp includes a compiled image library, and pdfkit
+   reads font files next to its own code. Both must stay as normal files in `node_modules`.
+
+### Still open
+
+- Confirm `https://api.unityfj.com/health` after the deploy, then the storefront and admin.

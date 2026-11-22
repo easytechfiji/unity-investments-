@@ -2,8 +2,8 @@
 //
 // Vercel starts a copy of this function when requests come in and keeps it warm for a while.
 // The app (settings check, database pool, services) is built once per copy and reused for
-// every request that copy handles. It imports the compiled code in dist/, which the build
-// command in vercel.json produces.
+// every request that copy handles. It imports the bundled code in dist/bundle/
+// (scripts/bundle.mjs), which the build command in vercel.json produces.
 //
 // The app is loaded with a dynamic import inside a try, not a static import at the top, so
 // that if loading fails (a missing file or package) the error is caught and reported instead
@@ -16,7 +16,7 @@ const POOL_MAX = 3;
 let starting;
 
 function getApp() {
-  starting ??= import('../dist/bootstrap.js')
+  starting ??= import('../dist/bundle/bootstrap.js')
     .then(({ bootstrap }) => bootstrap(process.env, { poolMax: POOL_MAX }))
     .then(
       (started) => started.app,
