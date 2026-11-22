@@ -30,7 +30,8 @@ Staging uses the same pattern under a staging name, for example `staging.unityfj
 
 The API runs on Vercel as a function, so there is no separate server to rent. `apps/api/vercel.json` sets the install and build commands and sends every request to `apps/api/api/index.js`, which builds the Express app once per running copy (`src/bootstrap.ts`, the same start up code `npm start` uses).
 
-- Import the repository as a new Vercel project. Root Directory `apps/api`, Framework Preset "Other", leave the Build, Output and Install fields empty (no overrides). The API runs on Node.js 24, set by `engines` in `apps/api/package.json`: `sanitize-html` loads the ES module `htmlparser2` with `require`, which failed on Vercel's Node 22 with `ERR_REQUIRE_ESM`.
+- Import the repository as a new Vercel project. Root Directory `apps/api`, Framework Preset "Other", leave the Build, Output and Install fields empty (no overrides). The API runs on Node.js 24, set by `engines` in `apps/api/package.json`.
+- The build bundles the API into one file (`npm run bundle -w @od/api`, `apps/api/scripts/bundle.mjs`). Vercel starts functions with require(esm) switched off, and `sanitize-html` loads the ES module `htmlparser2` with `require`, so the unbundled API failed with `ERR_REQUIRE_ESM`. To test the bundle the way Vercel runs it: `node --no-experimental-require-module`.
 - Add the domain `api.unityfj.com`.
 - Health check: `https://api.unityfj.com/health` returns `{"status":"ok"}` (it checks the database too).
 - `DATABASE_URL`: use the Supabase **transaction pooler** string (Connect, Transaction pooler, port 6543), not the session pooler. Vercel can run several copies of the API at once and each opens its own connections (at most 3, set in `api/index.js`); the transaction pooler shares them so the database does not run out.
