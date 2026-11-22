@@ -35,6 +35,7 @@ The API runs on Vercel as a function, so there is no separate server to rent. `a
 - Health check: `https://api.unityfj.com/health` returns `{"status":"ok"}` (it checks the database too).
 - `DATABASE_URL`: use the Supabase **transaction pooler** string (Connect, Transaction pooler, port 6543), not the session pooler. Vercel can run several copies of the API at once and each opens its own connections (at most 3, set in `api/index.js`); the transaction pooler shares them so the database does not run out.
 - `TRUST_PROXY`: `1` (Vercel's proxy).
+- The install command is `npm ci --include=dev`. `NODE_ENV=production` would otherwise make npm skip the build tools (TypeScript), and the build stops with exit code 127 (command not found).
 
 Limits that come with Vercel:
 
