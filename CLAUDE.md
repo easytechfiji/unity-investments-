@@ -82,6 +82,9 @@ Architecture:
 - Images and videos go to Supabase Storage in production (`STORAGE_DRIVER=supabase`), and to
   `.data/` locally.
 - Emails go through Resend in production and to `.data/outbox` locally.
+- In production all three run on Vercel. The API is a Vercel function (`apps/api/api/index.js`)
+  that builds the Express app with `src/bootstrap.ts`; locally it runs as a normal Node server.
+  Vercel limits requests to 4.5 MB, so large uploads (most videos) cannot go through the admin.
 
 Settings come only from environment files, checked at startup in `apps/api/src/config/env.ts`
 (API) and read in `apps/web/src/lib/config.ts` (storefront). Every variable is listed in the
@@ -126,8 +129,9 @@ Settings come only from environment files, checked at startup in `apps/api/src/c
   production.
 - `supabase/seed/test-fixtures.sql` holds made up data for automated tests only.
 - The 47 bedding products from the old VAULT catalogue are copied in with `npm run import:vault`
-  (`apps/api/scripts/import-vault.ts`). It reads VAULT through its public read-only API, re-encodes
-  each photo with the shop's image code, and is safe to run twice. VAULT had no prices, so they
+  (`apps/api/scripts/import-vault.ts`). The VAULT project has been deleted, so it now only works
+  with `--from <backup folder>`; that backup was also deleted once the products were in the new
+  database (21 November 2026). It re-encodes each photo with the shop's image code, and is safe to run twice. VAULT had no prices, so they
   start at 0 ("Request a quote"); the owner enters prices and stock in the admin.
 
 ## Open decisions
@@ -141,5 +145,5 @@ Settings come only from environment files, checked at startup in `apps/api/src/c
 
 ## Going live
 
-`docs/DEPLOYMENT.md` (Supabase, the API host, Vercel), then `docs/CUTOVER.md` (moving unityfj.com
+`docs/DEPLOYMENT.md` (Supabase, then Vercel for the API, storefront and admin), then `docs/CUTOVER.md` (moving unityfj.com
 from the old site without breaking email). `docs/SECURITY-REVIEW.md` lists the security work.

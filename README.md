@@ -61,4 +61,4 @@ CI runs all of these on every push, plus gitleaks and `npm audit`. The pre-commi
 
 ## Going live
 
-`docs/DEPLOYMENT.md` (setting up Supabase, the API host and Vercel), then `docs/CUTOVER.md` (switching the domain without breaking email or rankings). `docs/SECURITY-REVIEW.md` lists what is done and what is left.
+`docs/DEPLOYMENT.md` (setting up Supabase and the three Vercel projects), then `docs/CUTOVER.md` (switching the domain without breaking email or rankings). `docs/SECURITY-REVIEW.md` lists what is done and what is left.

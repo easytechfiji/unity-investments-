@@ -215,3 +215,42 @@ The working shop code was copied in from Sultan's earlier office supplies shop a
 - The owner admin account on the new Supabase project (needs the email and name).
 - API host, Vercel, Resend, Turnstile and PayPal keys; then `docs/DEPLOYMENT.md` and
   `docs/CUTOVER.md`.
+
+## The API on Vercel (22 November 2026)
+
+### What we built
+
+- The API now runs on Vercel as a function instead of on a separate server, so the whole shop
+  is three Vercel projects (API, storefront, admin) and Supabase. No shop logic changed.
+- `apps/api/src/bootstrap.ts`: the start up code (check settings, check the database, build the
+  services and the Express app), moved out of `server.ts` so both ways of running use it.
+- `apps/api/api/index.js`: the Vercel function. It builds the app once per running copy and
+  passes each request to Express. `apps/api/vercel.json` sends every address to it.
+- Tested locally by calling the function through a plain Node HTTP server: `/health` and
+  `/v1/categories` answered correctly. All 173 tests, lint and typecheck pass.
+
+### Key ideas
+
+- **Serverless function.** There is no machine running all the time. Vercel starts a copy when
+  requests arrive, reuses it while it stays warm, and may run several copies at once. That is why
+  the app is built once per copy (not per request) and each copy's database pool is small (3).
+- **Connection pooling.** Many copies times many connections could exceed Supabase's limit, so
+  production uses Supabase's transaction pooler, which shares a few real connections.
+- **The API was not removed because it holds the rules.** Prices, totals, stock, orders,
+  payments, emails and admin sign in are all worked out there, so the browser can never change
+  them. Moving where it runs kept all of that and all its tests.
+
+### Questions a tutor might ask
+
+1. **Why not move the API into the Next.js storefront to have only two projects?** It would mean
+   rewriting tested payment, order and sign in code. Hosting the same code differently gave the
+   same result (nothing extra to rent) with far less risk.
+2. **What do you lose on Vercel?** Requests over 4.5 MB (large photos, most videos) are refused,
+   in memory rate limits only count per copy (so a Cloudflare rule is added), and the admin can
+   only sign in on the real `unityfj.com` subdomains because its cookie is `SameSite=Strict`.
+
+### Still open
+
+- Deploy the three Vercel projects and set the environment variables (docs/DEPLOYMENT.md).
+- Check an invoice PDF downloads on Vercel (the font files are listed in `vercel.json`).
+- Owner admin account on the new Supabase project.

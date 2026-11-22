@@ -1,42 +1,20 @@
-import { createApp } from './app.js';
-import { ConfigError, loadConfig } from './config/env.js';
-import { createDb } from './db.js';
-import { createLogger } from './lib/logger.js';
-import { createServices } from './services/container.js';
-import { loadPrivateSettings } from './services/settings.js';
+// Runs the API as one long running Node process (local development and `npm start`).
+// On Vercel the API runs as a function instead: see api/index.js.
+import { bootstrap, StartupError } from './bootstrap.js';
+import { ConfigError } from './config/env.js';
 
 async function start(): Promise<void> {
-  let config;
+  let started;
   try {
-    config = loadConfig(process.env);
+    started = await bootstrap(process.env);
   } catch (error) {
-    if (error instanceof ConfigError) {
+    if (error instanceof ConfigError || error instanceof StartupError) {
       process.stderr.write(error.message + '\n');
       process.exit(1);
     }
     throw error;
   }
-
-  const logger = createLogger(config.LOG_LEVEL);
-  if (!config.DATABASE_URL) {
-    process.stderr.write(
-      'DATABASE_URL is not set. Run `npm run db:start` and copy apps/api/.env.example.\n',
-    );
-    process.exit(1);
-  }
-  const db = createDb(config.DATABASE_URL);
-
-  // Fail at startup, with a clear message, rather than on a customer's first request.
-  try {
-    await loadPrivateSettings(db);
-    await db.asAnon((client) => client.query('select 1 from public.public_site_settings'));
-  } catch (error) {
-    process.stderr.write(`Database check failed: ${(error as Error).message}\n`);
-    process.exit(1);
-  }
-
-  const services = createServices({ config, db, logger });
-  const app = createApp({ config, logger, services });
+  const { app, config, db, logger } = started;
 
   const server = app.listen(config.PORT, () => {
     logger.info('api listening', { port: config.PORT, env: config.NODE_ENV });
