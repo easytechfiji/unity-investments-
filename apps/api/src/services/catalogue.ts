@@ -1,5 +1,6 @@
 import {
   productPath,
+  type Availability,
   type Banner,
   type CategoryPage,
   type CategorySummary,
@@ -27,14 +28,16 @@ import type { VideoStore } from '../lib/video.js';
 const HOME_ROW_CATEGORIES = ['blankets-bedding'];
 const LOW_STOCK = 5;
 
-// "Recommended" is the default order: spotlighted products first, then
-// trending products, then the owner's manual rank, then name. Every key ends
+// "Recommended" is the default order: products in stock before products
+// arriving soon, then spotlighted products, then trending products, then the
+// owner's manual rank, then name. Every key ends
 // with `id asc` (or `id desc`) as a tie-break, so that two products which are
 // otherwise equal always come out in the same order. Without that, page 2 of
 // a list could repeat or skip a row depending on how the database happens to
 // read ties back.
 export const SORTS = {
-  recommended: 'spotlight desc, trending desc, sort_rank asc, name asc, id asc',
+  recommended:
+    "(availability = 'in_stock') desc, spotlight desc, trending desc, sort_rank asc, name asc, id asc",
   newest: 'created_at desc, id desc',
   price_asc: 'nullif(effective_price, 0) asc nulls last, name asc, id asc',
   price_desc: 'nullif(effective_price, 0) desc nulls last, name asc, id asc',
@@ -80,6 +83,7 @@ interface ProductRow {
   spotlight: boolean;
   sort_rank: number;
   quote_size_options: string[] | null;
+  availability: Availability;
   total_count?: number;
   [key: string]: unknown;
 }
@@ -88,6 +92,10 @@ function stockStatus(stock: number): StockStatus {
   if (stock <= 0) return 'out_of_stock';
   return stock <= LOW_STOCK ? 'low_stock' : 'in_stock';
 }
+
+/** SQL that reads the N out of a name starting "No. N", for sorting 1, 2 ... 10 instead of 1, 10, 2. Null when there is none. */
+export const NUMBER_SORT = (column: string) =>
+  `nullif(substring(${column} from '^No[.] *([0-9]+)'), '')::int nulls last`;
 
 const isZero = (value: string | null) => value === null || Number(value) === 0;
 
@@ -113,8 +121,10 @@ function toCard(row: ProductRow, media: MediaStore): ProductCard {
     price,
     wasPrice,
     priceMax,
-    stock: row.stock,
-    stockStatus: stockStatus(row.stock),
+    availability: row.availability,
+    // A product that has not arrived has no count to show.
+    stock: row.availability === 'arriving_soon' ? 0 : row.stock,
+    stockStatus: stockStatus(row.availability === 'arriving_soon' ? 0 : row.stock),
     image: media.imageSet(row.image),
     categorySlug: row.category_slug,
     subcategorySlug: row.subcategory_slug,
@@ -183,7 +193,7 @@ function filterSql(filters: ProductFilters, params: unknown[], includePrice: boo
     where.push(`effective_price >= ${add(filters.minPrice)}::numeric`);
   if (includePrice && filters.maxPrice)
     where.push(`effective_price <= ${add(filters.maxPrice)}::numeric`);
-  if (filters.inStock) where.push('stock > 0');
+  if (filters.inStock) where.push("availability = 'in_stock' and stock > 0");
   return where.length ? `where ${where.join(' and ')}` : '';
 }
 
@@ -256,7 +266,11 @@ export function createCatalogue(db: Db, media: MediaStore, video: VideoStore) {
         stock: number;
       }>(
         client,
-        'select id, sku, color_name, size_name, price, stock from public.public_product_variants where product_id = $1 order by price, id',
+        // Numbered options ("No. 1: White" to "No. 12: ...") sort by their number, so No. 2
+        // comes before No. 10. Anything without a number keeps the order it was added in.
+        `select id, sku, color_name, size_name, price, stock from public.public_product_variants
+         where product_id = $1
+         order by price, ${NUMBER_SORT('color_name')}, ${NUMBER_SORT('size_name')}, id`,
         [row.id],
       );
       const related = await rows<ProductRow>(
@@ -300,7 +314,7 @@ export function createCatalogue(db: Db, media: MediaStore, video: VideoStore) {
           colour: variant.color_name,
           size: variant.size_name,
           price: variant.price,
-          stock: variant.stock,
+          stock: row.availability === 'arriving_soon' ? 0 : variant.stock,
         })),
         videos: videoRows
           .map((videoRow) => {

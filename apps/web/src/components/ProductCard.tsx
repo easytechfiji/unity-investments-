@@ -17,7 +17,9 @@ export function ProductCard({
   headingLevel?: 2 | 3;
 }) {
   const Heading = headingLevel === 2 ? 'h2' : 'h3';
-  const canBuyHere = product.type === 'simple' && product.price !== null && product.stock > 0;
+  // Arriving soon, or no price yet: the card leads to the quotation form.
+  const quote = product.availability === 'arriving_soon' || product.price === null;
+  const canBuyHere = product.type === 'simple' && !quote && product.stock > 0;
   return (
     <article className="card">
       <ProductImage
@@ -38,15 +40,8 @@ export function ProductCard({
         <AddToCartInline productId={product.id} max={product.stock} name={product.name} />
       ) : (
         <div className="card-actions">
-          <Link
-            className="btn btn-plain"
-            href={product.price === null ? `${product.url}#quote` : product.url}
-          >
-            {product.price === null
-              ? 'Request a quote'
-              : product.stock <= 0
-                ? 'View details'
-                : 'Choose options'}
+          <Link className="btn btn-plain" href={quote ? `${product.url}#quote` : product.url}>
+            {quote ? 'Request quotation' : product.stock <= 0 ? 'View details' : 'Choose options'}
           </Link>
         </div>
       )}

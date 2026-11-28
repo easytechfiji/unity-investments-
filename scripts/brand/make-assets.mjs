@@ -6,7 +6,7 @@
 // on the right the word UNITY and the company line. The square files (header logo,
 // favicons) use the emblem only, because the wordmark is unreadable at 32 to 64 px.
 // The header shows the business name as text beside it.
-import { mkdirSync } from 'node:fs';
+import { mkdirSync, writeFileSync } from 'node:fs';
 import { join, resolve } from 'node:path';
 import sharp from 'sharp';
 
@@ -70,5 +70,25 @@ await sharp({ create: { width: 1200, height: 630, channels: 3, background: '#fff
   .composite([{ input: wide, left: 100, top: 115 }])
   .png()
   .toFile(join(web, 'src', 'app', 'opengraph-image.png'));
+
+// The full logo for the API's PDF documents (invoices, receipts and the rest), flattened on white
+// and kept as base64 inside a source file, so the PDF code needs no extra file on Vercel.
+const pdfLogo = await sharp(SOURCE)
+  .resize({ width: 900 })
+  .flatten({ background: '#ffffff' })
+  .png({ compressionLevel: 9, palette: true })
+  .toBuffer();
+const pdfLogoHeight = (await sharp(pdfLogo).metadata()).height;
+writeFileSync(
+  join(root, 'apps', 'api', 'src', 'lib', 'documentLogo.ts'),
+  [
+    '// Made by scripts/brand/make-assets.mjs from here/unity-logo.png. Do not edit by hand.',
+    `/** The full Unity logo as a PNG, 900 px wide. */`,
+    `export const DOCUMENT_LOGO_PNG = Buffer.from('${pdfLogo.toString('base64')}', 'base64');`,
+    '/** Height divided by width. */',
+    `export const DOCUMENT_LOGO_RATIO = ${(pdfLogoHeight / 900).toFixed(4)};`,
+    '',
+  ].join('\n'),
+);
 
 console.log('Brand assets written.');

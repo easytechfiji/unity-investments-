@@ -5,6 +5,18 @@ import { Field, asText, type FieldDef, type Values } from '../components';
 const SHOP: FieldDef[] = [
   { name: 'site_name', label: 'Shop name', type: 'text', required: true },
   {
+    name: 'legal_name',
+    label: 'Legal name',
+    type: 'text',
+    hint: 'Printed on invoices, receipts and other documents. For example Unity Investments & Marketing (Fiji) Pte Ltd.',
+  },
+  {
+    name: 'tin',
+    label: 'TIN',
+    type: 'text',
+    hint: 'Tax identification number, printed on documents.',
+  },
+  {
     name: 'address',
     label: 'Address',
     type: 'text',
@@ -34,6 +46,18 @@ const BANK: FieldDef[] = [
   { name: 'bank_name', label: 'Bank', type: 'text' },
   { name: 'bank_branch_code', label: 'Branch or BSB code', type: 'text' },
   { name: 'bank_account_number', label: 'Account number', type: 'text' },
+  {
+    name: 'bank_swift',
+    label: 'SWIFT / BIC code',
+    type: 'text',
+    hint: 'For payments from overseas. Printed on proforma invoices.',
+  },
+  {
+    name: 'mpaisa_number',
+    label: 'M-PAiSA number',
+    type: 'text',
+    hint: 'Printed in the payment details on documents. Leave empty to leave it out.',
+  },
 ];
 
 export function Settings() {
@@ -89,7 +113,7 @@ export function Settings() {
 
   return (
     <>
-      <h1>Settings</h1>
+      <h1>Shop details and bank</h1>
       {message ? (
         <p className={message.ok ? 'notice' : 'alert'} role="status">
           {message.text}
@@ -103,7 +127,8 @@ export function Settings() {
         <h2>Bank transfer details</h2>
         <p className="muted">
           Shown to customers who choose bank transfer, on the order confirmation page, in their
-          email and on the invoice. Never shown anywhere else on the website.
+          email and on the invoice, and in the payment details box of documents issued in the admin.
+          Never shown anywhere else on the website.
         </p>
         <div className="grid2">{BANK.map(field)}</div>
 

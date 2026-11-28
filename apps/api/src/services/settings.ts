@@ -1,4 +1,5 @@
 import type { BankDetails, SiteInfo } from '@od/shared';
+import type { PdfBusiness } from '../lib/documentPdf.js';
 import type { AppConfig } from '../config/env.js';
 import { paypalEnabled } from '../config/env.js';
 import type { Client, Db } from '../db.js';
@@ -11,6 +12,8 @@ export interface PrivateSettings {
   address: string | null;
   bank: BankDetails;
   paypalFxRate: string | null;
+  /** Everything printed at the top and in the payment box of a PDF document. */
+  business: PdfBusiness;
 }
 
 interface SettingsRow {
@@ -28,6 +31,11 @@ interface SettingsRow {
   bank_branch_code: string | null;
   bank_account_number: string | null;
   paypal_fx_rate: string | null;
+  website_url: string | null;
+  legal_name: string | null;
+  tin: string | null;
+  bank_swift: string | null;
+  mpaisa_number: string | null;
   [key: string]: unknown;
 }
 
@@ -56,6 +64,22 @@ export async function loadPrivateSettings(client: Client | Db): Promise<PrivateS
       accountNumber: row.bank_account_number,
     },
     paypalFxRate: row.paypal_fx_rate,
+    business: {
+      siteName: row.site_name,
+      legalName: row.legal_name,
+      address: row.address,
+      website: row.website_url,
+      phone: row.phone,
+      phone2: row.phone_2,
+      email: row.email,
+      tin: row.tin,
+      bankAccountName: row.bank_account_name,
+      bankName: row.bank_name,
+      bankBranchCode: row.bank_branch_code,
+      bankAccountNumber: row.bank_account_number,
+      bankSwift: row.bank_swift,
+      mpaisa: row.mpaisa_number,
+    },
   };
 }
 

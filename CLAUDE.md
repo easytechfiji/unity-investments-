@@ -7,7 +7,7 @@ Read this file first. It is the standing context and rules for this repository.
 The online shop for Unity Investment (Unity Investments & Marketing (Fiji) Pte Ltd), a business at Lot 23, Nakasi, Fiji. Domain: unityfj.com.
 
 It sells one category, Blankets & Bedding: double bed bedsheets and bedding sets (subcategories
-`double-bed-bedsheets`, `bedding-sets` and `coming-soon`). Customers browse, add to cart and check out as guests,
+`double-bed-bedsheets`, `bedding-sets` and `new-arrivals`, which was `coming-soon` until the 12 arrived products came in). Customers browse, add to cart and check out as guests,
 then pay by bank transfer or PayPal, and collect from the shop or ask for delivery.
 
 The developer is Sultan (Easytech), who works in VS Code on Windows.
@@ -83,6 +83,11 @@ Architecture:
 - Images and videos go to Supabase Storage in production (`STORAGE_DRIVER=supabase`), and to
   `.data/` locally.
 - Emails go through Resend in production and to `.data/outbox` locally.
+- Documents (invoices, official receipts, proforma invoices, order forms) are issued in the admin,
+  Sales > Documents. The API saves the record and the PDF (private `documents` bucket, `.data/documents`
+  locally), emails it and the browser downloads it. Issued documents cannot be changed or deleted,
+  only voided (database triggers enforce it). PDFs are drawn with pdfkit in
+  `apps/api/src/lib/documentPdf.ts`; website order invoices use the same design.
 - In production all three run on Vercel. The API is a Vercel function (`apps/api/api/index.js`)
   that builds the Express app with `src/bootstrap.ts`; locally it runs as a normal Node server.
   Vercel limits requests to 4.5 MB, so large uploads (most videos) cannot go through the admin.

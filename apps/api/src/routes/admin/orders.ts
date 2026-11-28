@@ -166,12 +166,7 @@ export function orderRoutes(services: Services): Router {
         settings: await loadPrivateSettings(client),
       };
     });
-    const pdf = await renderInvoice(summary, {
-      siteName: settings.siteName,
-      address: settings.address,
-      phone: settings.phone,
-      email: settings.shopEmail,
-    });
+    const pdf = await renderInvoice(summary, settings.business);
     res
       .set('Content-Type', 'application/pdf')
       .set('Content-Disposition', `attachment; filename="invoice-${summary.orderNumber}.pdf"`)

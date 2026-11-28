@@ -124,7 +124,7 @@ export function Orders() {
               {data.orders.map((order) => (
                 <tr key={order.id}>
                   <td>
-                    <Link to={`/orders/${order.id}`}>{order.order_number}</Link>
+                    <Link to={`/sales/orders/${order.id}`}>{order.order_number}</Link>
                   </td>
                   <td>{formatDate(order.created_at)}</td>
                   <td>
@@ -234,7 +234,7 @@ export function OrderDetail() {
   return (
     <>
       <p>
-        <Link to="/orders">Back to orders</Link>
+        <Link to="/sales/orders">Back to orders</Link>
       </p>
       <h1>
         Order {order.orderNumber} <Badge value={order.orderState} />{' '}
@@ -313,7 +313,7 @@ export function OrderDetail() {
             confirmLabel="Yes, move to trash"
             onConfirm={async () => {
               await api.remove(`/orders/${id}`);
-              void navigate('/orders');
+              void navigate('/sales/orders');
             }}
           />
         )}

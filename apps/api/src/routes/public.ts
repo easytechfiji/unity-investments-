@@ -189,12 +189,7 @@ export function publicRoutes(services: Services): Router {
     const { reference, email } = parseInput(orderLookupSchema, req.body);
     const summary = await orders.lookup(reference, email);
     const settings = await loadPrivateSettings(db);
-    const pdf = await renderInvoice(summary, {
-      siteName: settings.siteName,
-      address: settings.address,
-      phone: settings.phone,
-      email: settings.shopEmail,
-    });
+    const pdf = await renderInvoice(summary, settings.business);
     res
       .set('Cache-Control', 'no-store')
       .set('Content-Type', 'application/pdf')

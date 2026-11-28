@@ -14,8 +14,8 @@ import { RESOURCE_PAGES, type ResourcePage } from '../resources';
 
 type Row = Values & { id: number; image_url?: string | null; deleted_at?: string | null };
 
-function usePage(): ResourcePage | undefined {
-  const { resource } = useParams();
+/** The page for a resource key, given by the route (see App.tsx). */
+function usePage(resource: string): ResourcePage | undefined {
   return RESOURCE_PAGES.find((page) => page.key === resource);
 }
 
@@ -50,8 +50,8 @@ function display(
   return asText(value);
 }
 
-export function ResourceList() {
-  const page = usePage();
+export function ResourceList({ resource }: { resource: string }) {
+  const page = usePage(resource);
   const options = useOptions(page);
   const [rows, setRows] = useState<Row[]>([]);
   const [trash, setTrash] = useState(false);
@@ -79,7 +79,7 @@ export function ResourceList() {
       </div>
       {page.intro ? <p className="muted">{page.intro}</p> : null}
       <p className="row">
-        <Link className="btn" to={`/r/${page.key}/new`}>
+        <Link className="btn" to={`${page.path}/new`}>
           Add {page.singular}
         </Link>
         {page.softDelete ? (
@@ -118,7 +118,7 @@ export function ResourceList() {
               {page.columns.map((column, index) => (
                 <td key={column.name}>
                   {index === 0 && !trash ? (
-                    <Link to={`/r/${page.key}/${row.id}`}>
+                    <Link to={`${page.path}/${row.id}`}>
                       {display(row[column.name], column.name, options) || '(no name)'}
                     </Link>
                   ) : (
@@ -160,8 +160,8 @@ function emptyValues(fields: FieldDef[]): Values {
   return values;
 }
 
-export function ResourceEdit() {
-  const page = usePage();
+export function ResourceEdit({ resource }: { resource: string }) {
+  const page = usePage(resource);
   const { id } = useParams();
   const navigate = useNavigate();
   const options = useOptions(page);
@@ -200,7 +200,7 @@ export function ResourceEdit() {
       const payload = toPayload(page.fields, values);
       if (isNew) {
         const created = await api.post<Row>(`/${page.key}`, payload);
-        void navigate(`/r/${page.key}/${created.id}`, { replace: true });
+        void navigate(`${page.path}/${created.id}`, { replace: true });
         setMessage({ ok: true, text: 'Saved.' });
       } else {
         await api.put(`/${page.key}/${id}`, payload);
@@ -236,7 +236,7 @@ export function ResourceEdit() {
   return (
     <>
       <p>
-        <Link to={`/r/${page.key}`}>Back to {page.title.toLowerCase()}</Link>
+        <Link to={page.path}>Back to {page.title.toLowerCase()}</Link>
       </p>
       <h1>{isNew ? `Add ${page.singular}` : `Edit ${page.singular}`}</h1>
       {message ? (
@@ -265,7 +265,7 @@ export function ResourceEdit() {
               onConfirm={async () => {
                 try {
                   await api.remove(`/${page.key}/${id}`);
-                  void navigate(`/r/${page.key}`);
+                  void navigate(page.path);
                 } catch (caught) {
                   setMessage({
                     ok: false,

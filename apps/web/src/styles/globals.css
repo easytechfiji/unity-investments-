@@ -1112,6 +1112,10 @@ a.tile-name:hover,
   color: var(--muted);
 }
 
+.stock-arriving {
+  color: var(--navy);
+}
+
 .card-actions {
   margin-top: auto;
   position: relative;

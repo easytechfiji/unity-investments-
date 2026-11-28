@@ -20,6 +20,7 @@ interface ProductRow {
   original_price: string;
   sale_price: string | null;
   stock: number;
+  availability: 'in_stock' | 'arriving_soon';
   status: boolean;
   image_url: string | null;
   category_name: string;
@@ -118,6 +119,18 @@ export function Products() {
           <option value="low">Low stock</option>
           <option value="out">Out of stock</option>
         </select>
+        <label className="visually-hidden" htmlFor="product-availability">
+          Availability
+        </label>
+        <select
+          id="product-availability"
+          value={params.get('availability') ?? ''}
+          onChange={(event) => set('availability', event.target.value || null)}
+        >
+          <option value="">Any availability</option>
+          <option value="in_stock">In stock</option>
+          <option value="arriving_soon">Arriving soon</option>
+        </select>
         <button
           className="btn btn-plain"
           type="button"
@@ -143,6 +156,7 @@ export function Products() {
                 <th scope="col" className="num">
                   Stock
                 </th>
+                <th scope="col">Availability</th>
                 <th scope="col">Shown</th>
                 <th scope="col">Updated</th>
                 {params.get('trash') ? <th scope="col">Restore</th> : null}
@@ -172,7 +186,12 @@ export function Products() {
                         ? `${formatPrice(toCents(product.sale_price))} sale`
                         : formatPrice(toCents(product.original_price))}
                   </td>
-                  <td className={`num ${product.stock <= 0 ? 'warn' : ''}`}>{product.stock}</td>
+                  <td
+                    className={`num ${product.availability === 'in_stock' && product.stock <= 0 ? 'warn' : ''}`}
+                  >
+                    {product.stock}
+                  </td>
+                  <td>{product.availability === 'in_stock' ? 'In stock' : 'Arriving soon'}</td>
                   <td>{product.status ? 'Yes' : 'No'}</td>
                   <td>{formatDate(product.updated_at)}</td>
                   {params.get('trash') ? (
@@ -268,6 +287,16 @@ const PRODUCT_FIELDS: FieldDef[] = [
     hint: 'For simple products. Variants have their own stock.',
   },
   {
+    name: 'availability',
+    label: 'Availability',
+    type: 'select',
+    options: [
+      { value: 'in_stock', label: 'In stock: show the count ("3 left") and sell it' },
+      { value: 'arriving_soon', label: 'Arriving soon: no count, "Request quotation" only' },
+    ],
+    hint: 'Arriving soon hides the stock number and the Add to cart button. The cart refuses it too.',
+  },
+  {
     name: 'small_description',
     label: 'Short description',
     type: 'textarea',
@@ -346,6 +375,7 @@ export function ProductEdit() {
     type: 'simple',
     status: true,
     stock: 0,
+    availability: 'in_stock',
     original_price: '0',
     featured: false,
     trending: false,

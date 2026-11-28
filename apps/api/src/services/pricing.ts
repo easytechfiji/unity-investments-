@@ -26,6 +26,7 @@ interface ProductRow {
   original_price: string;
   sale_price: string | null;
   stock: number;
+  availability: 'in_stock' | 'arriving_soon';
   image: string | null;
   category_slug: string;
   subcategory_slug: string;
@@ -84,7 +85,7 @@ export async function priceLines(
   // Visible means: product on and not deleted, in a category and subcategory that are on.
   const products = await rows<ProductRow>(
     client,
-    `select p.id, p.name, p.slug, p.sku, p.type, p.original_price, p.sale_price, p.stock, p.image,
+    `select p.id, p.name, p.slug, p.sku, p.type, p.original_price, p.sale_price, p.stock, p.availability, p.image,
             c.slug as category_slug, s.slug as subcategory_slug
      from public.products p
      join public.categories c on c.id = p.category_id and c.status and c.deleted_at is null
@@ -176,6 +177,9 @@ export async function priceLines(
       lineTotal: centsToDecimal(unitCents * line.quantity),
       problem: null,
     };
+    // Not arrived yet: quotation only, whatever price or stock the row holds.
+    if (product.availability === 'arriving_soon')
+      return { ...result, unitPrice: null, lineTotal: null, problem: 'arriving_soon' };
     if (unitCents === 0)
       return { ...result, unitPrice: null, lineTotal: null, problem: 'quote_only' };
     if (available <= 0) return { ...result, problem: 'out_of_stock' };

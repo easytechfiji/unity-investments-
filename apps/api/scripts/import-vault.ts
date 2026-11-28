@@ -39,13 +39,13 @@ const CATEGORY = { slug: 'blankets-bedding', name: 'Blankets & Bedding' };
 const SUBCATEGORIES = [
   { slug: 'double-bed-bedsheets', name: 'Double bed bedsheets', sort: 1 },
   { slug: 'bedding-sets', name: 'Bedding sets', sort: 2 },
-  { slug: 'coming-soon', name: 'Coming soon', sort: 3 },
+  { slug: 'new-arrivals', name: 'New arrivals', sort: 3 },
 ] as const;
 // Placeholder text from the old site that says nothing about the product.
 const EMPTY_DESCRIPTIONS = new Set(['view product details and availability.']);
 
 function subcategoryFor(item: VaultItem): (typeof SUBCATEGORIES)[number]['slug'] {
-  if (item.is_upcoming) return 'coming-soon';
+  if (item.is_upcoming) return 'new-arrivals';
   if (/bedding set/i.test(item.name)) return 'bedding-sets';
   return 'double-bed-bedsheets';
 }

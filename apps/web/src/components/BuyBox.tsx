@@ -1,12 +1,13 @@
 'use client';
 
-import { formatPrice, toCents, type ProductVariant } from '@od/shared';
+import { formatPrice, toCents, type Availability, type ProductVariant } from '@od/shared';
 import Link from 'next/link';
 import { useMemo, useState } from 'react';
 import { cart } from '../lib/cart';
 
 interface Props {
   productId: number;
+  availability: Availability;
   name: string;
   type: 'simple' | 'variable';
   stock: number;
@@ -22,7 +23,7 @@ const unique = (values: (string | null)[]) => [
  * Size and colour choice, quantity and "Add to cart". The price and stock shown
  * here are for display only; the server prices the cart again at checkout.
  */
-export function BuyBox({ productId, name, type, stock, price, variants }: Props) {
+export function BuyBox({ productId, availability, name, type, stock, price, variants }: Props) {
   const colours = useMemo(() => unique(variants.map((variant) => variant.colour)), [variants]);
   const sizes = useMemo(() => unique(variants.map((variant) => variant.size)), [variants]);
   const [colour, setColour] = useState(colours.length === 1 ? (colours[0] ?? '') : '');
@@ -42,11 +43,12 @@ export function BuyBox({ productId, name, type, stock, price, variants }: Props)
   const available = type === 'variable' ? (variant?.stock ?? 0) : stock;
   const limit = Math.max(1, Math.min(available, 999));
 
-  if (price === null) {
+  // Arriving soon, or no price yet: ask for a quotation instead of buying.
+  if (availability === 'arriving_soon' || price === null) {
     return (
       <p>
         <a className="btn btn-block" href="#quote">
-          Request a quote
+          Request quotation
         </a>
       </p>
     );
@@ -121,7 +123,7 @@ export function BuyBox({ productId, name, type, stock, price, variants }: Props)
           <span
             className={`stock stock-${variant.stock <= 0 ? 'out_of_stock' : variant.stock <= 5 ? 'low_stock' : 'in_stock'}`}
           >
-            {variant.stock <= 0 ? 'Out of stock' : `In stock (${variant.stock})`}
+            {variant.stock <= 0 ? 'Out of stock' : `${variant.stock} left`}
           </span>
         </p>
       ) : null}

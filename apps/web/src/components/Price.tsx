@@ -38,23 +38,22 @@ export function Price({
   return <p className={`price ${className}`}>{money(product.price)}</p>;
 }
 
-const STOCK_TEXT = {
-  in_stock: 'In stock',
-  low_stock: 'Low stock',
-  out_of_stock: 'Out of stock',
-} as const;
-
-/** Stock in words and colour, never colour alone. Real numbers only. */
+/**
+ * Stock in words and colour, never colour alone. Real numbers only: the exact
+ * count ("3 left"), or "Arriving soon" for a product that is on its way.
+ */
 export function StockStatus({
   product,
 }: {
-  product: Pick<ProductCard, 'stockStatus' | 'stock' | 'price'>;
+  product: Pick<ProductCard, 'stockStatus' | 'stock' | 'price' | 'availability'>;
 }) {
+  if (product.availability === 'arriving_soon') {
+    return <p className="stock stock-arriving">Arriving soon</p>;
+  }
   if (product.price === null) return null;
-  const label = STOCK_TEXT[product.stockStatus];
   return (
     <p className={`stock stock-${product.stockStatus}`}>
-      {product.stockStatus === 'out_of_stock' ? label : `${label} (${product.stock})`}
+      {product.stockStatus === 'out_of_stock' ? 'Out of stock' : `${product.stock} left`}
     </p>
   );
 }

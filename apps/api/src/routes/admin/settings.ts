@@ -75,7 +75,9 @@ export function settingsRoutes(services: Services): Router {
       `select id, name, sku, stock from (
          select p.id, p.name, p.sku,
                 case when p.type = 'variable' then coalesce((select sum(v.stock) from public.product_variants v where v.product_id = p.id), 0) else p.stock end as stock
-         from public.products p where p.deleted_at is null and p.status
+         from public.products p
+         -- Products arriving soon have no count yet, so they are not "low".
+         where p.deleted_at is null and p.status and p.availability = 'in_stock'
        ) s where stock <= 5 order by stock, name limit 15`,
     );
     const recent = await db.query(

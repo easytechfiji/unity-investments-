@@ -92,7 +92,7 @@ export function Dashboard() {
           {data.recent.map((order) => (
             <tr key={order.id}>
               <td>
-                <Link to={`/orders/${order.id}`}>{order.order_number}</Link>
+                <Link to={`/sales/orders/${order.id}`}>{order.order_number}</Link>
               </td>
               <td>{formatDate(order.created_at)}</td>
               <td>{[order.first_name, order.last_name].filter(Boolean).join(' ')}</td>

@@ -73,7 +73,9 @@ function productJsonLd(product: ProductDetail) {
   const availability = `https://schema.org/${product.stock > 0 ? 'InStock' : 'OutOfStock'}`;
   const url = `${SITE_URL}${product.url}`;
   let offers: Record<string, unknown> | undefined;
-  if (product.price !== null && product.priceMax) {
+  // A product arriving soon is not on sale yet, so it has no offer until it arrives.
+  const onSale = product.availability === 'in_stock';
+  if (onSale && product.price !== null && product.priceMax) {
     offers = {
       '@type': 'AggregateOffer',
       lowPrice: product.price,
@@ -83,7 +85,7 @@ function productJsonLd(product: ProductDetail) {
       availability,
       url,
     };
-  } else if (product.price !== null) {
+  } else if (onSale && product.price !== null) {
     offers = {
       '@type': 'Offer',
       price: product.price,
@@ -93,7 +95,7 @@ function productJsonLd(product: ProductDetail) {
       itemCondition: 'https://schema.org/NewCondition',
     };
   }
-  // No price shown (quote only): offers are left out rather than invented (Appendix C).
+  // No price shown (quote only) or arriving soon: offers are left out rather than invented (Appendix C).
   return {
     '@context': 'https://schema.org',
     '@type': 'Product',
@@ -110,7 +112,9 @@ function productJsonLd(product: ProductDetail) {
 export default async function ProductPage({ params }: Props) {
   const product = await load(params);
   const [site, regions] = await Promise.all([api.site(), api.regions()]);
-  const quoteOnly = product.price === null;
+  const arriving = product.availability === 'arriving_soon';
+  // Arriving soon, or no price set: the customer asks for a quotation instead of buying.
+  const quoteOnly = arriving || product.price === null;
   const sizes = [...new Set(product.variants.map((variant) => variant.size).filter(Boolean))];
   const colours = [...new Set(product.variants.map((variant) => variant.colour).filter(Boolean))];
 
@@ -156,9 +160,10 @@ export default async function ProductPage({ params }: Props) {
           {product.sku ? <p className="sku">SKU {product.sku}</p> : null}
           {product.smallDescription ? <p>{product.smallDescription}</p> : null}
           <Price product={product} />
-          {product.type === 'simple' ? <StockStatus product={product} /> : null}
+          {product.type === 'simple' || arriving ? <StockStatus product={product} /> : null}
           <BuyBox
             productId={product.id}
+            availability={product.availability}
             name={product.name}
             type={product.type}
             stock={product.stock}
@@ -208,7 +213,13 @@ export default async function ProductPage({ params }: Props) {
           ) : null}
           <dt>Availability</dt>
           <dd>
-            {quoteOnly ? 'Price on request' : product.stock > 0 ? 'In stock' : 'Out of stock'}
+            {arriving
+              ? 'Arriving soon'
+              : quoteOnly
+                ? 'Price on request'
+                : product.stock > 0
+                  ? `${product.stock} left`
+                  : 'Out of stock'}
           </dd>
         </dl>
         {product.description ? (
@@ -231,8 +242,12 @@ export default async function ProductPage({ params }: Props) {
 
       {quoteOnly ? (
         <section className="section" id="quote" aria-labelledby="quote-title">
-          <h2 id="quote-title">Request a quote</h2>
-          <p>Tell us what you need and we will reply with a price.</p>
+          <h2 id="quote-title">Request quotation</h2>
+          <p>
+            {arriving
+              ? 'This product is arriving soon. Tell us what you need and we will reply with a price.'
+              : 'Tell us what you need and we will reply with a price.'}
+          </p>
           <div className="prose">
             <EnquiryForm
               kind="quote"
@@ -272,7 +287,7 @@ export default async function ProductPage({ params }: Props) {
         <Price product={product} />
         {quoteOnly ? (
           <a className="btn" href="#quote">
-            Request a quote
+            Request quotation
           </a>
         ) : (
           <button className="btn" type="submit" form="buy-form">
