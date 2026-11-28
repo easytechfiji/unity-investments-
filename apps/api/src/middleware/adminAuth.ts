@@ -98,7 +98,7 @@ export async function loadAdmin(
 
 /**
  * Lets a request through only with a valid session that has passed two-factor
- * (aal2) and belongs to a row in admin_profiles. Being signed in to Supabase
+ * (aal2, unless ADMIN_MFA_REQUIRED is false) and belongs to a row in admin_profiles. Being signed in to Supabase
  * is not enough on its own.
  */
 export function requireAdmin(deps: {
@@ -130,7 +130,7 @@ export function requireAdmin(deps: {
       clearSessionCookies(res, config);
       throw new HttpError(401, 'signed_out', 'Please sign in.');
     }
-    if (claims.aal !== 'aal2')
+    if (config.ADMIN_MFA_REQUIRED && claims.aal !== 'aal2')
       throw new HttpError(401, 'mfa_required', 'Enter the code from your authenticator app.');
 
     const admin = await loadAdmin(db, claims.userId, claims.email);

@@ -106,6 +106,9 @@ const envSchema = z
     AUTH_URL: z.url().optional(),
     // Send cookies only over HTTPS. Always true in production.
     COOKIE_SECURE: booleanString('false'),
+    // Ask admins for an authenticator app code after the password. On unless set to false.
+    // Switched off for now at the owner's request; set it back to true to turn it on again.
+    ADMIN_MFA_REQUIRED: booleanString('true'),
   })
   .superRefine((env, ctx) => {
     if (env.NODE_ENV !== 'production') return;
