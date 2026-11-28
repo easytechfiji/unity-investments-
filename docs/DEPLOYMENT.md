@@ -56,6 +56,7 @@ Settings (in the Vercel project's Environment Variables, never in git). See `app
 | `API_PUBLIC_URL`                                                                                 | `https://api.unityfj.com`                                                                          |
 | `TRUST_PROXY`                                                                                    | `1` on Vercel (see above)                                                                          |
 | `COOKIE_SECURE`                                                                                  | `true`                                                                                             |
+| `ADMIN_MFA_REQUIRED`                                                                             | `false` for now (password only); `true` or empty asks for an authenticator code                    |
 | `DATABASE_URL`                                                                                   | Supabase session pooler string                                                                     |
 | `SUPABASE_URL`, `SUPABASE_PUBLISHABLE_KEY`, `SUPABASE_SECRET_KEY`                                | From Supabase                                                                                      |
 | `STORAGE_DRIVER`                                                                                 | `supabase`                                                                                         |

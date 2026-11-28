@@ -291,3 +291,36 @@ The working shop code was copied in from Sultan's earlier office supplies shop a
 ### Still open
 
 - Confirm `https://api.unityfj.com/health` after the deploy, then the storefront and admin.
+
+## Two-factor sign in made optional (28 November 2026)
+
+### What was built
+
+- A setting, `ADMIN_MFA_REQUIRED`, in `apps/api/src/config/env.ts`. It is on unless set to
+  `false`. The owner asked for password only sign in for now, so production sets it to `false`.
+- With it off, `POST /v1/admin/auth/login` answers `{ next: 'done' }` and the admin page goes
+  straight in. `requireAdmin` (`apps/api/src/middleware/adminAuth.ts`) stops asking for an
+  `aal2` session.
+- A test signs in with the password alone when the setting is off. The existing tests still
+  prove the code is required when it is on.
+
+### Key ideas
+
+- **A switch, not a deletion.** The two-factor code stays, so turning it back on is one setting
+  and a redeploy, with no code change.
+- **Safe default.** If the setting is missing, two-factor is on. Forgetting a setting can only
+  make the admin stricter, never weaker.
+
+### Questions a tutor might ask
+
+1. **What does aal2 mean?** Authenticator assurance level 2: Supabase marks a session aal2 once
+   the person has also entered an authenticator code. With only a password it is aal1.
+2. **What is the risk of password only?** Anyone who learns the password can open the admin, so
+   the password must be long and unique. Two-factor should come back before more staff get
+   accounts.
+
+### Still open
+
+- Turn two-factor back on later: set `ADMIN_MFA_REQUIRED=true` on the API in Vercel and redeploy.
+  The owner's unfinished authenticator setup in Supabase can be removed under Authentication,
+  Users, so the first sign in shows a fresh QR code.

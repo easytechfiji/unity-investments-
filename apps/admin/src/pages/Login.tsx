@@ -5,8 +5,9 @@ import { useSession } from '../session';
 type Step = 'password' | 'mfa_verify' | 'mfa_enroll';
 
 /**
- * Sign in: email and password, then always a 6 digit code from an
- * authenticator app. The first time, the app is set up by scanning a code.
+ * Sign in: email and password, then a 6 digit code from an authenticator app
+ * (unless the API has two-factor switched off). The first time, the app is set
+ * up by scanning a code.
  */
 export function Login() {
   const { refresh } = useSession();
@@ -32,8 +33,12 @@ export function Login() {
 
   const signIn = () =>
     run(async () => {
-      const result = await api.post<{ next: Step }>('/auth/login', { email, password });
+      const result = await api.post<{ next: Step | 'done' }>('/auth/login', { email, password });
       setPassword('');
+      if (result.next === 'done') {
+        await refresh();
+        return;
+      }
       if (result.next === 'mfa_enroll') {
         setEnrolment(await api.post<{ qrCode: string; secret: string }>('/auth/mfa/enroll'));
       }

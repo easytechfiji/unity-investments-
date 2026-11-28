@@ -74,8 +74,13 @@ export function adminAuthRoutes(services: Services): Router {
       await auth.signOut(signedIn.accessToken);
       throw new HttpError(403, 'not_admin', 'This account cannot use the admin.');
     }
-    const factors = await auth.factors(signedIn.accessToken);
     setSessionCookies(res, config, signedIn);
+    // With two-factor switched off, the password is enough.
+    if (!config.ADMIN_MFA_REQUIRED) {
+      res.json({ next: 'done' });
+      return;
+    }
+    const factors = await auth.factors(signedIn.accessToken);
     const verified = factors.some(
       (factor) => factor.type === 'totp' && factor.status === 'verified',
     );

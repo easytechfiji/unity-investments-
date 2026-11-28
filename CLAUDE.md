@@ -76,8 +76,9 @@ Architecture:
 - The storefront reads the catalogue through the API. It never talks to Supabase directly.
 - The API runs public reads as the `anon` role, so Row Level Security protects the data even if
   an API query is wrong. Admin writes need a signed in admin.
-- Admin sign in goes through the API to Supabase Auth with required two-factor (TOTP). The session
-  is kept in HttpOnly SameSite=Strict cookies. Locally and in tests a stand-in for Supabase Auth
+- Admin sign in goes through the API to Supabase Auth with two-factor (TOTP). Two-factor is
+  switched off in production for now (`ADMIN_MFA_REQUIRED=false`, at the owner's request); it is
+  on by default and comes back by setting it to `true`. The session is kept in HttpOnly SameSite=Strict cookies. Locally and in tests a stand-in for Supabase Auth
   (`apps/api/dev/fakeAuth.ts`) is used; it never runs in production.
 - Images and videos go to Supabase Storage in production (`STORAGE_DRIVER=supabase`), and to
   `.data/` locally.

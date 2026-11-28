@@ -129,6 +129,31 @@ describe('admin access', () => {
     expect(me.body).toMatchObject({ name: 'New', role: 'staff' });
   });
 
+  it('signs in with the password alone when two-factor is switched off', async () => {
+    const noMfa = await startHarness({ ADMIN_MFA_REQUIRED: 'false' });
+    try {
+      const user = noMfa.auth.createUser('plain@example.test', 'correct horse battery staple');
+      await noMfa.db.query('insert into auth.users (id, email) values ($1, $2)', [
+        user.id,
+        'plain@example.test',
+      ]);
+      await noMfa.db.query(
+        `insert into public.admin_profiles (user_id, name, role) values ($1, 'Plain', 'owner')`,
+        [user.id],
+      );
+      const agent = request.agent(noMfa.app);
+      const login = await agent
+        .post('/v1/admin/auth/login')
+        .set('Origin', ADMIN_ORIGIN)
+        .send({ email: 'plain@example.test', password: 'correct horse battery staple' });
+      expect(login.body).toEqual({ next: 'done' });
+      const orders = await agent.get('/v1/admin/orders');
+      expect(orders.status).toBe(200);
+    } finally {
+      await noMfa.close();
+    }
+  });
+
   it('refuses a signed in user who is not an admin', async () => {
     h.auth.createUser('customer@example.test', 'correct horse battery staple');
     const res = await request(h.app)
