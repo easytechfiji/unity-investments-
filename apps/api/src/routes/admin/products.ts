@@ -21,6 +21,7 @@ const listQuerySchema = z.strictObject({
   category_id: idSchema.optional(),
   status: z.enum(['on', 'off']).optional(),
   stock: z.enum(['low', 'out']).optional(),
+  availability: z.enum(['in_stock', 'arriving_soon']).optional(),
   trash: z.enum(['1']).optional(),
   page: z.coerce.number().int().min(1).max(1000).default(1),
 });
@@ -229,9 +230,13 @@ export function productRoutes(services: Services): Router {
     const stockExpr = `case when p.type = 'variable' then coalesce((select sum(v.stock) from public.product_variants v where v.product_id = p.id), 0) else p.stock end`;
     if (query.stock === 'low') where.push(`${stockExpr} between 1 and 5`);
     if (query.stock === 'out') where.push(`${stockExpr} <= 0`);
+    if (query.availability) {
+      params.push(query.availability);
+      where.push(`p.availability = $${params.length}`);
+    }
     params.push(PAGE_SIZE, (query.page - 1) * PAGE_SIZE);
     const found = await db.query<{ image: string | null; total: number }>(
-      `select p.id, p.name, p.slug, p.sku, p.type, p.original_price, p.sale_price, p.status, p.featured, p.image,
+      `select p.id, p.name, p.slug, p.sku, p.type, p.original_price, p.sale_price, p.status, p.featured, p.image, p.availability,
               p.updated_at, p.deleted_at, c.name as category_name, s.name as subcategory_name,
               ${stockExpr} as stock, count(*) over () as total
        from public.products p

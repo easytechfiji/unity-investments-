@@ -1,5 +1,6 @@
 import {
   productPath,
+  type Availability,
   type Banner,
   type CategoryPage,
   type CategorySummary,
@@ -27,14 +28,16 @@ import type { VideoStore } from '../lib/video.js';
 const HOME_ROW_CATEGORIES = ['blankets-bedding'];
 const LOW_STOCK = 5;
 
-// "Recommended" is the default order: spotlighted products first, then
-// trending products, then the owner's manual rank, then name. Every key ends
+// "Recommended" is the default order: products in stock before products
+// arriving soon, then spotlighted products, then trending products, then the
+// owner's manual rank, then name. Every key ends
 // with `id asc` (or `id desc`) as a tie-break, so that two products which are
 // otherwise equal always come out in the same order. Without that, page 2 of
 // a list could repeat or skip a row depending on how the database happens to
 // read ties back.
 export const SORTS = {
-  recommended: 'spotlight desc, trending desc, sort_rank asc, name asc, id asc',
+  recommended:
+    "(availability = 'in_stock') desc, spotlight desc, trending desc, sort_rank asc, name asc, id asc",
   newest: 'created_at desc, id desc',
   price_asc: 'nullif(effective_price, 0) asc nulls last, name asc, id asc',
   price_desc: 'nullif(effective_price, 0) desc nulls last, name asc, id asc',
@@ -80,6 +83,7 @@ interface ProductRow {
   spotlight: boolean;
   sort_rank: number;
   quote_size_options: string[] | null;
+  availability: Availability;
   total_count?: number;
   [key: string]: unknown;
 }
@@ -113,8 +117,10 @@ function toCard(row: ProductRow, media: MediaStore): ProductCard {
     price,
     wasPrice,
     priceMax,
-    stock: row.stock,
-    stockStatus: stockStatus(row.stock),
+    availability: row.availability,
+    // A product that has not arrived has no count to show.
+    stock: row.availability === 'arriving_soon' ? 0 : row.stock,
+    stockStatus: stockStatus(row.availability === 'arriving_soon' ? 0 : row.stock),
     image: media.imageSet(row.image),
     categorySlug: row.category_slug,
     subcategorySlug: row.subcategory_slug,
@@ -183,7 +189,7 @@ function filterSql(filters: ProductFilters, params: unknown[], includePrice: boo
     where.push(`effective_price >= ${add(filters.minPrice)}::numeric`);
   if (includePrice && filters.maxPrice)
     where.push(`effective_price <= ${add(filters.maxPrice)}::numeric`);
-  if (filters.inStock) where.push('stock > 0');
+  if (filters.inStock) where.push("availability = 'in_stock' and stock > 0");
   return where.length ? `where ${where.join(' and ')}` : '';
 }
 
@@ -300,7 +306,7 @@ export function createCatalogue(db: Db, media: MediaStore, video: VideoStore) {
           colour: variant.color_name,
           size: variant.size_name,
           price: variant.price,
-          stock: variant.stock,
+          stock: row.availability === 'arriving_soon' ? 0 : variant.stock,
         })),
         videos: videoRows
           .map((videoRow) => {

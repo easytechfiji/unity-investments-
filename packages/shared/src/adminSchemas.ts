@@ -134,6 +134,8 @@ export const adminProductSchema = z
       .optional()
       .transform((value) => value ?? null),
     stock: z.coerce.number().int().min(0).max(1_000_000).default(0),
+    // in_stock: shows the count and can be bought. arriving_soon: quotation only, no count.
+    availability: z.enum(['in_stock', 'arriving_soon']).default('in_stock'),
     tax: z.coerce.number().min(0).max(100).default(0),
     status: z.boolean().default(true),
     trending: z.boolean().default(false),

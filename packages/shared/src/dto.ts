@@ -24,6 +24,9 @@ export interface SubcategorySummary extends CategorySummary {
 
 export type StockStatus = 'in_stock' | 'low_stock' | 'out_of_stock';
 
+/** in_stock: on the shelf, can be bought. arriving_soon: on its way, quotation only. */
+export type Availability = 'in_stock' | 'arriving_soon';
+
 export interface ProductCard {
   id: number;
   name: string;
@@ -36,6 +39,8 @@ export interface ProductCard {
   wasPrice: string | null;
   /** Highest variant price, set only when variants differ in price. */
   priceMax: string | null;
+  availability: Availability;
+  /** Always 0 for a product arriving soon. */
   stock: number;
   stockStatus: StockStatus;
   image: ImageSet | null;
@@ -196,6 +201,7 @@ export type LineProblem =
   | 'choose_variant'
   | 'variant_not_found'
   | 'quote_only'
+  | 'arriving_soon'
   | 'out_of_stock'
   | 'not_enough_stock';
 

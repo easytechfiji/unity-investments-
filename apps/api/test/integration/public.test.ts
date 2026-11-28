@@ -50,6 +50,25 @@ describe('catalogue', () => {
     );
   });
 
+  it('hides the count of a product arriving soon and lists it after products in stock (update 02)', async () => {
+    const paper = await productId(h.db, 'a4-copy-paper-80gsm-500-sheets');
+    await h.db.query(
+      `update public.products set availability = 'arriving_soon', spotlight = true, sort_rank = 1 where id = $1`,
+      [paper],
+    );
+    const detail = await request(h.app).get('/v1/products/a4-copy-paper-80gsm-500-sheets');
+    expect(detail.body.availability).toBe('arriving_soon');
+    expect(detail.body.stock).toBe(0);
+    const list = await request(h.app).get('/v1/products?pageSize=48');
+    const slugs = list.body.products.map((p: { slug: string }) => p.slug);
+    // Spotlighted and ranked first, but still after every product that is in stock.
+    expect(slugs.at(-1)).toBe('a4-copy-paper-80gsm-500-sheets');
+    const inStockOnly = await request(h.app).get('/v1/products?pageSize=48&inStock=true');
+    expect(inStockOnly.body.products.map((p: { slug: string }) => p.slug)).not.toContain(
+      'a4-copy-paper-80gsm-500-sheets',
+    );
+  });
+
   it('page 2 continues exactly where page 1 stopped, for every sort', async () => {
     for (const sort of [
       'recommended',

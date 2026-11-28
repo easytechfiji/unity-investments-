@@ -220,6 +220,15 @@ describe('cheat attempts (Appendix B section 10)', () => {
     expect(await h.db.query('select 1 from public.orders')).toHaveLength(0);
   });
 
+  it('refuses a product that is arriving soon, even with a price and stock (update 02)', async () => {
+    const paper = await productId(h.db, 'a4-copy-paper-80gsm-500-sheets');
+    await h.db.query("update public.products set availability = 'arriving_soon' where id = $1", [paper]);
+    const res = await order(checkoutBody([{ productId: paper, variantId: null, quantity: 1 }]));
+    expect(res.status).toBe(409);
+    expect(res.body.error.fields[0].message).toBe('arriving_soon');
+    expect(await h.db.query('select 1 from public.orders')).toHaveLength(0);
+  });
+
   it("does not show one customer's order to someone else", async () => {
     const paper = await productId(h.db, 'a4-copy-paper-80gsm-500-sheets');
     const placed = await order(checkoutBody([{ productId: paper, variantId: null, quantity: 1 }]));

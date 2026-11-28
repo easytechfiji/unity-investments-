@@ -18,6 +18,8 @@ export function problemText(problem: LineProblem, available: number): string {
       return 'This option is no longer available. Remove it to continue.';
     case 'quote_only':
       return 'This item is price on request. Remove it and ask us for a quote.';
+    case 'arriving_soon':
+      return 'This item is arriving soon. Remove it and ask us for a quotation.';
     case 'out_of_stock':
       return 'Out of stock. Remove it to continue.';
     case 'not_enough_stock':

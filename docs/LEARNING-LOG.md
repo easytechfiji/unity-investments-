@@ -324,3 +324,44 @@ The working shop code was copied in from Sultan's earlier office supplies shop a
 - Turn two-factor back on later: set `ADMIN_MFA_REQUIRED=true` on the API in Vercel and redeploy.
   The owner's unfinished authenticator setup in Supabase can be removed under Authentication,
   Users, so the first sign in shows a fresh QR code.
+
+## Update 02, part 1: in stock or arriving soon (28 November 2026)
+
+### What was built
+
+- A new column, `products.availability`, either `in_stock` or `arriving_soon`
+  (`supabase/migrations/20261128000001_availability.sql`). Every product that existed when the
+  migration ran became `arriving_soon`, so nothing turned buyable by accident. New products
+  default to `in_stock`. The public view `public_products` gained the column.
+- Storefront: a product in stock shows its exact count ("3 left", or "Out of stock" at 0). A
+  product arriving soon shows "Arriving soon", no count, no Add to cart, and a "Request
+  quotation" button that opens the quotation form on its page. Its structured data has no offer.
+- API: the card and detail carry `availability`; the count of a product arriving soon is sent as 0. The cart refuses it with the problem `arriving_soon`, even if it has a price and stock.
+- Order: the default Recommended order puts every product in stock before every product
+  arriving soon. "In stock only" leaves arriving soon products out.
+- Admin: an Availability dropdown on the product form, an Availability column and filter on the
+  product list. The dashboard's low stock list ignores products arriving soon.
+- Tests: the cart refusal, the hidden count and the order (integration), and a browser test.
+
+### Key ideas
+
+- **The server decides, not the button.** Hiding Add to cart is only for the customer's
+  convenience. The rule lives in `priceLines` (`apps/api/src/services/pricing.ts`), so an old
+  cart in a browser or a hand made request still cannot buy a product that has not arrived.
+- **A safe migration default.** Existing rows got `arriving_soon` and the default was then
+  changed to `in_stock`. One `alter table` with a default fills the existing rows, the second
+  only affects rows added later.
+- **Adding a column to a view.** Postgres only lets `create or replace view` add columns at the
+  end, so `availability` was added last.
+
+### Questions a tutor might ask
+
+1. **Why send stock 0 instead of the real number for a product arriving soon?** The count of a
+   product not on the shelf is not real yet. Sending 0 means no page can show it by mistake.
+2. **Why not just use price 0 to mean "arriving soon", as before?** Price 0 means "price on
+   request", which is a different thing. A product can have its price set before it arrives.
+
+### Still open
+
+- Apply the migration to the live database, then set up the 12 arrived products: sizes Single,
+  Double and King at FJD 40, 50 and 60, with the counted stock for each size.

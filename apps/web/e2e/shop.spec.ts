@@ -123,3 +123,19 @@ test('the contact form sends a message', async ({ page }) => {
   await page.getByRole('button', { name: 'Send message' }).click();
   await expect(page.getByText('Your message has been sent')).toBeVisible();
 });
+
+test('a product arriving soon has no count and no cart, only a quotation request', async ({
+  page,
+}) => {
+  await page.goto('/collection/road-safety/safety-signs/product/wet-floor-sign');
+  await expect(page.getByRole('heading', { level: 1 })).toHaveText('Wet floor sign');
+  await expect(page.getByText('Arriving soon').first()).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Add to cart' })).toHaveCount(0);
+  await expect(page.getByText(/\d+ left/)).toHaveCount(0);
+  await page.getByRole('link', { name: 'Request quotation' }).first().click();
+  await expect(page.getByRole('heading', { name: 'Request quotation' })).toBeVisible();
+
+  // A product in stock shows its exact count.
+  await page.goto('/collection/road-safety/cones-and-barriers/product/retractable-barrier-post');
+  await expect(page.getByText('6 left').first()).toBeVisible();
+});
