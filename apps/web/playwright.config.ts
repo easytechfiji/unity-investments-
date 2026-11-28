@@ -58,6 +58,7 @@ export default defineConfig({
         EMAIL_PROVIDER: 'file',
         OUTBOX_DIR: '../../.data/e2e-outbox',
         MEDIA_DIR: '../../.data/e2e-media',
+        DOCUMENTS_DIR: '../../.data/e2e-documents',
         RATE_LIMIT_SCALE: '20',
       },
       reuseExistingServer: false,

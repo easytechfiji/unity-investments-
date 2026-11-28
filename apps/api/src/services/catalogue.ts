@@ -93,6 +93,10 @@ function stockStatus(stock: number): StockStatus {
   return stock <= LOW_STOCK ? 'low_stock' : 'in_stock';
 }
 
+/** SQL that reads the N out of a name starting "No. N", for sorting 1, 2 ... 10 instead of 1, 10, 2. Null when there is none. */
+export const NUMBER_SORT = (column: string) =>
+  `nullif(substring(${column} from '^No[.] *([0-9]+)'), '')::int nulls last`;
+
 const isZero = (value: string | null) => value === null || Number(value) === 0;
 
 function toCard(row: ProductRow, media: MediaStore): ProductCard {
@@ -262,7 +266,11 @@ export function createCatalogue(db: Db, media: MediaStore, video: VideoStore) {
         stock: number;
       }>(
         client,
-        'select id, sku, color_name, size_name, price, stock from public.public_product_variants where product_id = $1 order by price, id',
+        // Numbered options ("No. 1: White" to "No. 12: ...") sort by their number, so No. 2
+        // comes before No. 10. Anything without a number keeps the order it was added in.
+        `select id, sku, color_name, size_name, price, stock from public.public_product_variants
+         where product_id = $1
+         order by price, ${NUMBER_SORT('color_name')}, ${NUMBER_SORT('size_name')}, id`,
         [row.id],
       );
       const related = await rows<ProductRow>(

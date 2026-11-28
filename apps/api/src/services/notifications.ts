@@ -111,12 +111,7 @@ export function createNotifications(deps: { config: AppConfig; mailer: Mailer; l
       ? [
           {
             filename: `invoice-${order.orderNumber}.pdf`,
-            content: await renderInvoice(order, {
-              siteName: settings.siteName,
-              address: settings.address,
-              phone: settings.phone,
-              email: settings.shopEmail,
-            }),
+            content: await renderInvoice(order, settings.business),
           },
         ]
       : undefined;

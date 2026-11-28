@@ -365,3 +365,133 @@ The working shop code was copied in from Sultan's earlier office supplies shop a
 
 - Apply the migration to the live database, then set up the 12 arrived products: sizes Single,
   Double and King at FJD 40, 50 and 60, with the counted stock for each size.
+
+## Update 02, part 2: numbered bedsheets sort by number (29 November 2026)
+
+### What was built
+
+- The numbered bedsheets are set up in the admin, not by code: colours named "No. 1: White" to
+  "No. 12: ...", one price for all. Only the order needed code.
+- The product page lists variants by price, then by the number in a "No. N" colour or size name,
+  then in the order they were added (`NUMBER_SORT` in `apps/api/src/services/catalogue.ts`). The
+  admin's Sizes and colours list sorts the same way (`apps/api/src/routes/admin/resources.ts`).
+- A test adds No. 10, No. 2 and No. 1 in that order and expects 1, 2, 10.
+
+### Key ideas
+
+- **Text sorts character by character.** "No. 10" comes before "No. 2" because "1" is less than
+  "2". Reading the number out (`substring(name from '^No[.] *([0-9]+)')`) and sorting it as an
+  integer gives 1, 2 ... 10.
+- **No backslashes in the pattern.** `[.]` and `[0-9]` mean the same as `\.` and `\d`, but they
+  survive JavaScript strings unchanged. A first try with backslashes lost them on the way to the
+  database.
+
+### Questions a tutor might ask
+
+1. **Why not add a sort order column?** The numbers are already in the names the owner types. A
+   separate column would be one more thing to keep in step.
+2. **What happens to names without a number?** The number is null, nulls sort last, and those
+   keep their old order (by name in the admin, by when they were added on the product page).
+
+## Update 02, part 3: admin tabs and sub-tabs (29 November 2026)
+
+### What was built
+
+- The long admin sidebar became five main tabs: Dashboard, Sales, Products, Website and
+  Settings. Each main tab's sub-tabs show as a row of links above the page.
+- The menu is described once, in `apps/admin/src/nav.ts`. `Layout.tsx` draws it and works out
+  the current tab from the address.
+- New addresses that say where you are: `/sales/orders`, `/products/categories`,
+  `/website/faqs`, `/settings/activity` and so on. Each plain list page in `resources.ts` now
+  has its own `path`. The old addresses (`/orders`, `/r/faqs`, `/audit`, `/admins`,
+  `/settings`) redirect to the new ones, so bookmarks keep working.
+- Owner only sub-tabs (Shop details and bank, Document settings, Admin users) stay hidden from
+  staff, as before. The API still refuses them on its side.
+- On small screens the main tabs become a bar across the top and the sub-tabs scroll sideways.
+
+### Key ideas
+
+- **One description of the menu.** The tabs, their addresses and who may see them live in one
+  list. The sidebar, the sub-tab row and the "which tab am I on" logic all read it, so they
+  cannot disagree.
+- **Real links with aria-current.** Screen readers announce the current tab, and every tab
+  works with the keyboard and can be opened in a new browser tab.
+- **Longest match wins.** `/products/categories/4` matches both All products (`/products`) and
+  Categories; the longer prefix, Categories, is the current one.
+
+### Questions a tutor might ask
+
+1. **Why redirect the old addresses instead of just changing them?** Staff may have bookmarks,
+   and the browser history holds old links. A redirect costs one line each.
+2. **Is hiding a tab enough to protect owner pages?** No. Hiding is for tidiness; the API checks
+   the owner role on every request.
+
+## Update 02, part 4: documents (invoices, receipts, proformas, order forms) (29 November 2026)
+
+### What was built
+
+- **Sales > Documents** in the admin. Pick a type (invoice, official receipt, proforma invoice,
+  order form), pick a saved party or type a new one, enter the lines and the type's own fields,
+  and press Issue. That one button saves the document and its PDF, emails the PDF to the party
+  (shop email as reply to) and downloads it in the browser. A Preview button draws the PDF
+  first, marked PREVIEW, without saving anything.
+- **Numbers** INV-0001, RCT-0001, PRO-0001 and ORD-0001, one sequence per type, in
+  `document_counters`. The owner can set the next number in **Settings > Document settings**
+  so the website continues after the paper books.
+- **Parties**: saved customers, with each party's documents. A document keeps a copy of the
+  party's details as they were when it was issued.
+- **Void, never edit**: an issued document cannot be changed or deleted. A mistake is fixed by
+  voiding it with a reason and issuing a new one. The PDF is redrawn with a large VOID mark.
+- **Receipt from invoice**: "Make receipt" fills in the party, the amount and "Invoice
+  INV-0001", and marks the invoice paid when the receipt is issued (voiding the receipt undoes
+  that).
+- **PDFs** are drawn with pdfkit (`apps/api/src/lib/documentPdf.ts`) in the design of the paper
+  forms (`docs/forms/make_forms.py`): logo, title with the orange underline, party and number
+  boxes, striped item table, totals with the blue total row, payment details, numbered terms,
+  signature lines and the three colour strip. The website's order invoices now use the same
+  design (`apps/api/src/lib/invoice.ts`).
+- **Settings**: legal name, TIN, SWIFT code and M-PAiSA number were added to Shop details and
+  bank. VAT rate, "prices include VAT" and the terms and conditions are in Document settings.
+- Database: `supabase/migrations/20261129000001_documents.sql`. PDFs go to a private bucket,
+  `documents`.
+- Tests: totals, VAT, rounding, numbers and amounts in words (unit); issuing, six documents at
+  once getting six different numbers, a failed email, void, receipts, the database refusing
+  changes, permissions and settings (integration); the whole flow in the browser (e2e).
+
+### Key ideas
+
+- **Accounting records are append only.** Invoices and receipts are evidence of what was
+  charged and paid. Editing one later would make the books disagree with the paper the
+  customer holds. So the database itself refuses updates and deletes (triggers in the
+  migration), and the only change allowed is voiding.
+- **Taking a number safely.** `update document_counters set next_number = next_number + 1
+returning next_number - 1` runs inside the transaction that saves the document. The update
+  locks the counter row, so a second admin waits for the first to finish. If saving fails, the
+  whole transaction rolls back and the number is not used up.
+- **Save first, email second.** The email happens after the transaction commits. If Resend
+  is down, the document is still saved and downloaded, and the list shows "Not emailed" with a
+  Resend email button.
+- **VAT without floating point.** "Prices include VAT" takes VAT out of the total:
+  VAT = total x rate / (100 + rate), worked in whole cents with BigInt and rounded half up.
+  Subtotal is then total minus VAT, so the three lines always add up exactly.
+- **Snapshots.** A document stores copies of the party, the business details and the terms as
+  they were when issued, so a VOID copy redrawn a year later looks exactly like the original.
+
+### Questions a tutor might ask
+
+1. **Why not use a Postgres sequence for the numbers?** A sequence never goes backwards, so a
+   failed save would leave a gap (INV-0004 missing). Auditors ask about gaps. A counter row
+   updated inside the transaction gives the number back when the save fails, and the owner can
+   set where it starts.
+2. **Why keep the PDF instead of drawing it again on every download?** The stored PDF is
+   exactly what the customer received. Drawing it again with newer code or settings could
+   produce a slightly different document.
+
+### Still open
+
+- The owner should check, in Settings: the address printed on documents (the paper forms say
+  "Lot 23, 9 Miles, Nakasi, Suva, Fiji", the settings say "Lot 23, Nakasi, Fiji"), the legal
+  name, TIN, bank details, SWIFT and the M-PAiSA number.
+- Starting numbers for INV, RCT, PRO and ORD (Settings > Document settings). They start at 1.
+- VAT on documents: on at 12.5%, prices including VAT, as on the paper forms. Confirm.
+- Website orders keep their own order numbers on their invoices; they do not take INV numbers.

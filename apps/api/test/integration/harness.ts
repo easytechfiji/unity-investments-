@@ -9,7 +9,7 @@ import { startFakeAuth, totpCode, type FakeAuth } from '../../dev/fakeAuth.js';
 import { createApp } from '../../src/app.js';
 import { loadConfig, type AppConfig } from '../../src/config/env.js';
 import { createDb, type Db } from '../../src/db.js';
-import type { Email } from '../../src/lib/email.js';
+import type { Email, Mailer } from '../../src/lib/email.js';
 import { createLogger } from '../../src/lib/logger.js';
 import { createServices } from '../../src/services/container.js';
 import { startFakePaypal, type FakePaypal } from '../fakes/paypal.js';
@@ -23,6 +23,8 @@ export interface Harness {
   db: Db;
   config: AppConfig;
   sent: Email[];
+  /** The memory mailer. Tests can replace send to make an email fail. */
+  mailer: Mailer;
   paypal: FakePaypal;
   auth: FakeAuth;
   close(): Promise<void>;
@@ -38,13 +40,15 @@ export async function resetData(db: Db): Promise<void> {
     truncate public.payment_events, public.order_items, public.orders, public.product_images,
       public.product_variants, public.products, public.subcategories, public.categories,
       public.attribute_values, public.shipping_regions, public.faqs, public.pages, public.banners,
-      public.testimonials, public.redirects, public.admin_audit_log, public.admin_profiles, auth.users
+      public.testimonials, public.redirects, public.admin_audit_log, public.admin_profiles, auth.users,
+      public.document_lines, public.documents, public.parties
       restart identity cascade;
     set session_replication_role = origin;
     update public.site_settings set phone = null, email = null, address = null, bank_account_name = null,
       bank_name = null, bank_branch_code = null, bank_account_number = null, paypal_fx_rate = null where id = 1;
     update public.sale_settings set active = false, ends_at = null where id = 1;
     alter sequence public.order_number_seq restart with 100001;
+    update public.document_counters set next_number = 1;
   `);
   await loadSampleData(testDatabaseUrl());
   await loadTestFixtures(testDatabaseUrl());
@@ -56,6 +60,7 @@ export async function startHarness(env: Record<string, string> = {}): Promise<Ha
   const paypal = await startFakePaypal();
   const auth = await startFakeAuth({ serviceKey: 'test-service-key' });
   const mediaDir = mkdtempSync(join(tmpdir(), 'od-media-'));
+  const documentsDir = mkdtempSync(join(tmpdir(), 'od-documents-'));
   const config = loadConfig({
     NODE_ENV: 'test',
     LOG_LEVEL: 'silent',
@@ -64,6 +69,7 @@ export async function startHarness(env: Record<string, string> = {}): Promise<Ha
     DATABASE_URL: testDatabaseUrl(),
     EMAIL_PROVIDER: 'memory',
     MEDIA_DIR: mediaDir,
+    DOCUMENTS_DIR: documentsDir,
     AUTH_URL: auth.url,
     PAYPAL_CLIENT_ID: 'fake-client-id',
     PAYPAL_CLIENT_SECRET: 'fake-client-secret',
@@ -81,6 +87,7 @@ export async function startHarness(env: Record<string, string> = {}): Promise<Ha
     db,
     config,
     sent: services.mailer.sent ?? [],
+    mailer: services.mailer,
     paypal,
     auth,
     async close() {
@@ -88,6 +95,7 @@ export async function startHarness(env: Record<string, string> = {}): Promise<Ha
       await auth.close();
       await db.close();
       rmSync(mediaDir, { recursive: true, force: true });
+      rmSync(documentsDir, { recursive: true, force: true });
     },
   };
 }

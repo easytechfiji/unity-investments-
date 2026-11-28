@@ -19,7 +19,7 @@ Staging uses the same pattern under a staging name, for example `staging.unityfj
 2. Project Settings, Data API: note the Project URL. API Keys: note the publishable key and the secret key.
 3. Connect, Session pooler: copy the connection string, put the password in, and save it as `SUPABASE_DB_URL` in the root `.env` on your computer only.
 4. Push the database: `npm run db:push`. It applies every file in `supabase/migrations` and records them where the Supabase CLI expects.
-5. Storage: create a bucket named `media`, public, and limit file types to `image/webp`. Only the API writes to it. Create a second bucket named `videos`, public, limited to `video/mp4`, for promotional product videos.
+5. Storage: create a bucket named `media`, public, and limit file types to `image/webp`. Only the API writes to it. Create a second bucket named `videos`, public, limited to `video/mp4`, for promotional product videos, and a third named `documents`, **private**, limited to `application/pdf`, for the PDFs of invoices, receipts and other documents issued in the admin. `npm run storage:buckets` creates all three with these settings.
 6. Authentication: turn off "Allow new users to sign up". Turn on multi-factor (TOTP). Set the Site URL to the admin address.
 7. Database, Backups: check daily backups are on (point in time recovery if the plan allows).
 8. Database, Network restrictions: allow only what needs it.

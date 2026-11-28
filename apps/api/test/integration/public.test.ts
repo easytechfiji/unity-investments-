@@ -69,6 +69,29 @@ describe('catalogue', () => {
     );
   });
 
+  it('lists numbered colours by number, No. 2 before No. 10 (update 02)', async () => {
+    const paper = await productId(h.db, 'a4-copy-paper-80gsm-500-sheets');
+    await h.db.query(`update public.products set type = 'variable' where id = $1`, [paper]);
+    // Added out of order, all at the same price.
+    for (const name of ['No. 10: Grey', 'No. 2: Blue', 'No. 1: White']) {
+      const [colour] = await h.db.query<{ id: number }>(
+        `insert into public.attribute_values (attribute_id, name)
+         values ((select id from public.attribute_options where code = 'colour'), $1) returning id`,
+        [name],
+      );
+      await h.db.query(
+        `insert into public.product_variants (product_id, color_id, price, stock) values ($1, $2, 45, 3)`,
+        [paper, colour?.id],
+      );
+    }
+    const res = await request(h.app).get('/v1/products/a4-copy-paper-80gsm-500-sheets');
+    expect(res.body.variants.map((v: { colour: string }) => v.colour)).toEqual([
+      'No. 1: White',
+      'No. 2: Blue',
+      'No. 10: Grey',
+    ]);
+  });
+
   it('page 2 continues exactly where page 1 stopped, for every sort', async () => {
     for (const sort of [
       'recommended',

@@ -7,7 +7,8 @@ export interface ResourcePage {
   key: string;
   title: string;
   singular: string;
-  group: 'catalogue' | 'website';
+  /** Where the page lives in the admin, for example /products/categories. */
+  path: string;
   fields: FieldDef[];
   /** Columns shown in the list. */
   columns: { name: string; label: string }[];
@@ -38,7 +39,7 @@ export const RESOURCE_PAGES: ResourcePage[] = [
     key: 'categories',
     title: 'Categories',
     singular: 'category',
-    group: 'catalogue',
+    path: '/products/categories',
     softDelete: true,
     image: true,
     fields: [
@@ -72,7 +73,7 @@ export const RESOURCE_PAGES: ResourcePage[] = [
     key: 'subcategories',
     title: 'Subcategories',
     singular: 'subcategory',
-    group: 'catalogue',
+    path: '/products/subcategories',
     softDelete: true,
     image: true,
     optionsFrom: { category_id: { path: '/categories', value: 'id', label: 'name' } },
@@ -103,7 +104,7 @@ export const RESOURCE_PAGES: ResourcePage[] = [
     key: 'attribute-values',
     title: 'Sizes and colours',
     singular: 'size or colour',
-    group: 'catalogue',
+    path: '/products/sizes-and-colours',
     optionsFrom: { attribute_id: { path: '/attribute-options', value: 'id', label: 'name' } },
     intro: 'The sizes and colours that product variants can use.',
     fields: [
@@ -126,7 +127,7 @@ export const RESOURCE_PAGES: ResourcePage[] = [
     key: 'shipping-regions',
     title: 'Delivery regions',
     singular: 'delivery region',
-    group: 'catalogue',
+    path: '/settings/delivery-regions',
     intro: 'Delivery areas in Fiji and the charge per order. Click And Collect is always free.',
     fields: [
       { name: 'region_name', label: 'Area name', type: 'text', required: true },
@@ -150,7 +151,7 @@ export const RESOURCE_PAGES: ResourcePage[] = [
     key: 'banners',
     title: 'Home page banner',
     singular: 'banner',
-    group: 'website',
+    path: '/website/banner',
     image: true,
     intro:
       'A real photo from the shop or a product range, shown at the top of the home page. Upload the image after saving.',
@@ -181,7 +182,7 @@ export const RESOURCE_PAGES: ResourcePage[] = [
     key: 'faqs',
     title: 'FAQs',
     singular: 'question',
-    group: 'website',
+    path: '/website/faqs',
     fields: [
       { name: 'question', label: 'Question', type: 'text', required: true },
       {
@@ -203,7 +204,7 @@ export const RESOURCE_PAGES: ResourcePage[] = [
     key: 'pages',
     title: 'Pages',
     singular: 'page',
-    group: 'website',
+    path: '/website/pages',
     intro:
       'Text for the About, Delivery, Privacy and Terms pages. Without one, the website shows a short plain default.',
     fields: [
@@ -239,7 +240,7 @@ export const RESOURCE_PAGES: ResourcePage[] = [
     key: 'testimonials',
     title: 'Testimonials',
     singular: 'testimonial',
-    group: 'website',
+    path: '/website/testimonials',
     intro: 'Only add real customer comments, with their permission. Hidden until shown is ticked.',
     fields: [
       { name: 'name', label: 'Customer name', type: 'text', required: true },
@@ -255,7 +256,7 @@ export const RESOURCE_PAGES: ResourcePage[] = [
     key: 'redirects',
     title: 'Redirects',
     singular: 'redirect',
-    group: 'website',
+    path: '/website/redirects',
     intro:
       'Send an old or renamed address to its new page with a permanent redirect, so links and Google rankings carry over.',
     fields: [

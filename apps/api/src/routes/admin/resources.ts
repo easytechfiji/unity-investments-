@@ -53,7 +53,9 @@ export const RESOURCES: Record<string, ResourceDef> = {
   'attribute-values': {
     table: 'attribute_values',
     schema: adminAttributeValueSchema,
-    orderBy: 'attribute_id, name',
+    // "No. 2: Blue" before "No. 10: Grey": numbered names sort by their number first.
+    orderBy:
+      "attribute_id, nullif(substring(name from '^No[.] *([0-9]+)'), '')::int nulls last, name",
     search: ['name'],
   },
   banners: {

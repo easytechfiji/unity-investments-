@@ -95,6 +95,14 @@ const envSchema = z
       .regex(/^[a-z0-9-]+$/)
       .default('videos'),
 
+    // PDFs of issued documents (invoices, receipts and the rest). Private: admins
+    // download them through the API, never from a public address.
+    DOCUMENTS_DIR: z.string().default('../../.data/documents'),
+    SUPABASE_DOCUMENTS_BUCKET: z
+      .string()
+      .regex(/^[a-z0-9-]+$/)
+      .default('documents'),
+
     // Supabase project URL, for example https://abcd1234.supabase.co
     SUPABASE_URL: z.url({ protocol: /^https$/ }).optional(),
     // Publishable key (older projects call it anon). Needed for Supabase Auth calls.

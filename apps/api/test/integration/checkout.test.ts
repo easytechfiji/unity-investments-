@@ -222,7 +222,9 @@ describe('cheat attempts (Appendix B section 10)', () => {
 
   it('refuses a product that is arriving soon, even with a price and stock (update 02)', async () => {
     const paper = await productId(h.db, 'a4-copy-paper-80gsm-500-sheets');
-    await h.db.query("update public.products set availability = 'arriving_soon' where id = $1", [paper]);
+    await h.db.query("update public.products set availability = 'arriving_soon' where id = $1", [
+      paper,
+    ]);
     const res = await order(checkoutBody([{ productId: paper, variantId: null, quantity: 1 }]));
     expect(res.status).toBe(409);
     expect(res.body.error.fields[0].message).toBe('arriving_soon');

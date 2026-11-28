@@ -2,6 +2,7 @@ import { Router } from 'express';
 import { requireAdmin, requireAdminOrigin } from '../../middleware/adminAuth.js';
 import type { Services } from '../../services/container.js';
 import { adminAuthRoutes } from './auth.js';
+import { documentRoutes } from './documents.js';
 import { orderRoutes } from './orders.js';
 import { productRoutes } from './products.js';
 import { resourceRoutes } from './resources.js';
@@ -24,6 +25,7 @@ export function adminRoutes(services: Services): Router {
   router.use(productRoutes(services));
   router.use(orderRoutes(services));
   router.use(settingsRoutes(services));
+  router.use(documentRoutes(services));
   router.use(resourceRoutes(services));
   return router;
 }

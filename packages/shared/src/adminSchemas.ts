@@ -213,6 +213,10 @@ export const adminSettingsSchema = z.strictObject({
   bank_name: optionalText(100),
   bank_branch_code: optionalText(40),
   bank_account_number: optionalText(60),
+  legal_name: optionalText(200),
+  tin: optionalText(40),
+  bank_swift: optionalText(20),
+  mpaisa_number: optionalText(40),
   paypal_fx_rate: z
     .string()
     .trim()
@@ -229,3 +233,171 @@ export const adminSettingsSchema = z.strictObject({
 });
 
 export type AdminSettings = z.input<typeof adminSettingsSchema>;
+
+// Documents (update 02, part 4) ------------------------------------------------
+
+const dateInput = z
+  .string()
+  .trim()
+  .regex(/^\d{4}-\d{2}-\d{2}$/, 'Enter a date such as 2026-11-29');
+
+const optionalDate = z
+  .string()
+  .trim()
+  .regex(/^(\d{4}-\d{2}-\d{2})?$/, 'Enter a date such as 2026-11-29')
+  .nullable()
+  .optional()
+  .transform((value) => (value ? value : null));
+
+const optionalMoney = moneyInput
+  .or(z.literal(''))
+  .nullable()
+  .optional()
+  .transform((value) => (value ? value : null));
+
+/** A saved customer, and the party details typed on a document. */
+export const adminPartySchema = z.strictObject({
+  name: text(200),
+  contact_person: optionalText(200),
+  address: optionalText(500),
+  country: optionalText(100),
+  phone: optionalText(60),
+  email: emailSchema
+    .nullable()
+    .optional()
+    .or(z.literal('').transform(() => null)),
+  tin: optionalText(40),
+  notes: optionalText(1000),
+});
+
+export const documentLineSchema = z.strictObject({
+  description: text(500),
+  hs_code: optionalText(20),
+  unit: optionalText(20),
+  qty: z
+    .string()
+    .trim()
+    .regex(/^\d{1,9}(\.\d{1,3})?$/, 'Enter a quantity such as 2 or 1.5')
+    .refine((value) => Number(value) > 0, 'Must be more than 0'),
+  unit_price: moneyInput,
+});
+
+/** The fields only some document types use. Stored as they are, in documents.fields. */
+const documentFields = z
+  .strictObject({
+    po_number: optionalText(100),
+    payment_method: optionalText(40),
+    payment_reference: optionalText(200),
+    paid_by: optionalText(40),
+    reference: optionalText(200),
+    being_payment_for: optionalText(300),
+    valid_until: optionalDate,
+    buyer_ref: optionalText(100),
+    incoterms: optionalText(60),
+    payment_terms: optionalText(200),
+    shipment_by: optionalText(100),
+    port_loading: optionalText(100),
+    port_discharge: optionalText(100),
+    country_origin: optionalText(100),
+    deliver_to: optionalText(500),
+    required_by: optionalDate,
+    taken_by: optionalText(100),
+    deposit_method: optionalText(40),
+    notes: optionalText(1000),
+  })
+  .prefault({});
+
+/**
+ * A document to preview or issue. Totals are not part of it: the API works them out
+ * from the lines. The party details are always sent; party_id says which saved party
+ * they came from, if any.
+ */
+export const adminDocumentSchema = z
+  .strictObject({
+    type: z.enum(['invoice', 'receipt', 'proforma', 'order']),
+    party_id: idSchema
+      .nullable()
+      .optional()
+      .transform((value) => value ?? null),
+    party: adminPartySchema,
+    /** Save a newly typed party for next time. Ignored when party_id is set. */
+    save_party: z.boolean().default(true),
+    issue_date: dateInput,
+    currency: z
+      .string()
+      .trim()
+      .toUpperCase()
+      .regex(/^[A-Z]{3}$/, 'Use a three letter code such as FJD or USD')
+      .default('FJD'),
+    lines: z.array(documentLineSchema).max(200, 'Use 200 lines or fewer').default([]),
+    vat_enabled: z.boolean().default(true),
+    prices_include_vat: z.boolean().default(true),
+    amount: optionalMoney,
+    freight: optionalMoney,
+    insurance: optionalMoney,
+    other_charges: optionalMoney,
+    deposit: optionalMoney,
+    invoice_id: idSchema
+      .nullable()
+      .optional()
+      .transform((value) => value ?? null),
+    fields: documentFields,
+  })
+  .superRefine((value, ctx) => {
+    if (value.type === 'receipt') {
+      if (!value.amount || Number(value.amount) <= 0)
+        ctx.addIssue({ code: 'custom', path: ['amount'], message: 'Enter the amount received' });
+      if (!value.fields.paid_by)
+        ctx.addIssue({
+          code: 'custom',
+          path: ['fields', 'paid_by'],
+          message: 'Choose how it was paid',
+        });
+      if (!value.fields.being_payment_for && !value.invoice_id)
+        ctx.addIssue({
+          code: 'custom',
+          path: ['fields', 'being_payment_for'],
+          message: 'Say what the payment is for',
+        });
+    } else if (value.lines.length === 0) {
+      ctx.addIssue({ code: 'custom', path: ['lines'], message: 'Add at least one line' });
+    }
+    if (value.type !== 'proforma' && value.currency !== 'FJD')
+      ctx.addIssue({
+        code: 'custom',
+        path: ['currency'],
+        message: 'Only a proforma invoice can use another currency',
+      });
+  });
+
+export type AdminDocumentInput = z.input<typeof adminDocumentSchema>;
+export type AdminDocument = z.output<typeof adminDocumentSchema>;
+
+export const adminDocumentSettingsSchema = z.strictObject({
+  vat_rate: z
+    .string()
+    .trim()
+    .regex(/^\d{1,3}(\.\d{1,2})?$/, 'Enter a rate such as 12.5')
+    .refine((value) => Number(value) <= 100, 'At most 100'),
+  prices_include_vat: z.boolean(),
+  terms_general: z.string().trim().max(4000),
+  terms_proforma: z.string().trim().max(4000),
+  next_numbers: z.strictObject({
+    invoice: z.coerce.number().int().min(1).max(99999999),
+    receipt: z.coerce.number().int().min(1).max(99999999),
+    proforma: z.coerce.number().int().min(1).max(99999999),
+    order: z.coerce.number().int().min(1).max(99999999),
+  }),
+});
+
+export const voidDocumentSchema = z.strictObject({
+  reason: text(300),
+});
+
+export const emailDocumentSchema = z.strictObject({
+  /** Another address than the party's. Empty means the party's email. */
+  to: emailSchema
+    .nullable()
+    .optional()
+    .or(z.literal('').transform(() => null)),
+});

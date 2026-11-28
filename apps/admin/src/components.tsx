@@ -1,7 +1,7 @@
 import { useState, type ReactNode } from 'react';
 
 export type FieldType =
-  'text' | 'textarea' | 'html' | 'number' | 'money' | 'checkbox' | 'select' | 'datetime';
+  'text' | 'textarea' | 'html' | 'number' | 'money' | 'checkbox' | 'select' | 'datetime' | 'date';
 
 export interface FieldDef {
   name: string;
@@ -106,6 +106,16 @@ export function Field({
           inputMode="decimal"
           value={text}
           placeholder="0.00"
+          onChange={(event) => onChange(event.target.value)}
+          {...common}
+        />
+      );
+      break;
+    case 'date':
+      input = (
+        <input
+          type="date"
+          value={text}
           onChange={(event) => onChange(event.target.value)}
           {...common}
         />

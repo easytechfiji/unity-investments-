@@ -1,10 +1,11 @@
-// Creates the two Supabase Storage buckets the API writes to (docs/DEPLOYMENT.md, Supabase step 5).
+// Creates the three Supabase Storage buckets the API writes to (docs/DEPLOYMENT.md, Supabase step 5).
 //
 //   npm run storage:buckets
 //
-// Uses SUPABASE_URL, SUPABASE_SECRET_KEY, SUPABASE_STORAGE_BUCKET and SUPABASE_VIDEO_BUCKET from
-// the env file. Both buckets are public to read, so the storefront can show the files, but only
-// the API (holding the secret key) can write. Each one only accepts the one file type the API
+// Uses SUPABASE_URL, SUPABASE_SECRET_KEY and the three SUPABASE_*_BUCKET names from
+// the env file. The media and video buckets are public to read, so the storefront can show the
+// files, but only the API (holding the secret key) can write. The documents bucket (invoices and
+// receipts as PDFs) is private: only the API can read or write it. Each one only accepts the one file type the API
 // produces. Safe to run again: an existing bucket has its settings brought back to these.
 import { MAX_UPLOAD_BYTES } from '../src/lib/media.js';
 import { MAX_VIDEO_UPLOAD_BYTES } from '../src/lib/video.js';
@@ -26,17 +27,25 @@ const buckets = [
     id: config.SUPABASE_STORAGE_BUCKET,
     allowed_mime_types: ['image/webp'],
     file_size_limit: MAX_UPLOAD_BYTES,
+    public: true,
   },
   {
     id: config.SUPABASE_VIDEO_BUCKET,
     allowed_mime_types: ['video/mp4'],
     file_size_limit: MAX_VIDEO_UPLOAD_BYTES,
+    public: true,
+  },
+  {
+    id: config.SUPABASE_DOCUMENTS_BUCKET,
+    allowed_mime_types: ['application/pdf'],
+    file_size_limit: 10 * 1024 * 1024,
+    public: false,
   },
 ];
 
 let failed = false;
 for (const bucket of buckets) {
-  const body = JSON.stringify({ ...bucket, name: bucket.id, public: true });
+  const body = JSON.stringify({ ...bucket, name: bucket.id });
   const base = `${config.SUPABASE_URL}/storage/v1/bucket`;
   const created = await fetch(base, { method: 'POST', headers, body });
   if (created.ok) {
